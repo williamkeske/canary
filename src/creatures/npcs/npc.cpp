@@ -313,7 +313,7 @@ void Npc::onPlayerSellAllLoot(uint32_t playerId, uint16_t itemId, bool ignore, u
 	if (!player) {
 		return;
 	}
-	if (itemId == ITEM_GOLD_POUCH) {
+	if (itemId == ITEM_LOOT_POUCH) {
 		auto container = player->getLootPouch();
 		if (!container) {
 			return;
@@ -363,7 +363,7 @@ void Npc::onPlayerSellItem(std::shared_ptr<Player> player, uint16_t itemId, uint
 	if (!player) {
 		return;
 	}
-	if (itemId == ITEM_GOLD_POUCH) {
+	if (itemId == ITEM_LOOT_POUCH) {
 		g_dispatcher().scheduleEvent(
 			SCHEDULER_MINTICKS, [this, playerId = player->getID(), itemId, ignore] { onPlayerSellAllLoot(playerId, itemId, ignore, 0); }, __FUNCTION__
 		);

@@ -1169,6 +1169,8 @@ bool ConditionRegeneration::executeCondition(std::shared_ptr<Creature> creature,
 	if (player) {
 		dailyStreak = static_cast<int32_t>(player->kv()->scoped("daily-reward")->get("streak")->getNumber());
 	}
+	
+	creature->changeHealth(0);
 	if (creature->getZoneType() != ZONE_PROTECTION || dailyStreak >= DAILY_REWARD_HP_REGENERATION) {
 		if (internalHealthTicks >= getHealthTicks(creature)) {
 			internalHealthTicks = 0;
@@ -1204,7 +1206,8 @@ bool ConditionRegeneration::executeCondition(std::shared_ptr<Creature> creature,
 			}
 		}
 	}
-
+	
+	creature->changeMana(0);
 	if (creature->getZoneType() != ZONE_PROTECTION || dailyStreak >= DAILY_REWARD_MP_REGENERATION) {
 		if (internalManaTicks >= getManaTicks(creature)) {
 			internalManaTicks = 0;

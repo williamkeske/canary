@@ -23,6 +23,12 @@ Container::Container(uint16_t type) :
 		m_maxItems = g_configManager().getNumber(LOOTPOUCH_MAXLIMIT, __FUNCTION__);
 		maxSize = 32;
 	}
+	
+	if (getID() == ITEM_LOOT_POUCH) {
+		pagination = true;
+		m_maxItems = g_configManager().getNumber(LOOTPOUCH_MAXLIMIT, __FUNCTION__);
+		maxSize = 32;
+	}
 
 	if (isStoreInbox()) {
 		pagination = true;
