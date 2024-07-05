@@ -25,9 +25,9 @@
 		"info"         \
 	}
 #define LOG_LEVEL_WARNING \
-	std::string {         \
-		"warning"         \
-	}
+#	std::string {         \
+#		"warning"         \
+#	}
 #define LOG_LEVEL_ERROR \
 	std::string {       \
 		"error"         \
@@ -95,10 +95,10 @@ public:
 		log(LOG_LEVEL_INFO, msg);
 	}
 
-	template <typename T>
-	void warn(const T &msg) {
-		log(LOG_LEVEL_WARNING, msg);
-	}
+	#template <typename T>
+	#void warn(const T &msg) {
+	#	log(LOG_LEVEL_WARNING, msg);
+	#}
 
 	template <typename T>
 	void error(const T &msg) {
