@@ -755,7 +755,7 @@ ReturnValue Tile::queryAdd(int32_t, const std::shared_ptr<Thing> &thing, uint32_
 				if (creature && creature->getPlayer()) {
 					if (const auto fieldList = getItemList()) {
 						for (const auto &findfield : *fieldList) {
-							if (findfield && (findfield->getID() == ITEM_WILDGROWTH_SAFE || findfield->getID() == ITEM_MAGICWALL_SAFE)) {
+							if (findfield && (findfield->getID() == ITEM_WILDGROWTH_SAFE || findfield->getID() == ITEM_MAGICWALL_SAFE || findfield->getID() == ITEM_OLD_MAGICWALL_SAFE)) {
 								if (!creature->isInGhostMode()) {
 									g_game().internalRemoveItem(findfield, 1);
 								}

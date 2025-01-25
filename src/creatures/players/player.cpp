@@ -5235,7 +5235,7 @@ std::map<uint32_t, uint32_t> &Player::getAllItemTypeCount(std::map<uint32_t, uin
 
 std::map<uint16_t, uint16_t> &Player::getAllSaleItemIdAndCount(std::map<uint16_t, uint16_t> &countMap) const {
 	for (const auto &item : getAllInventoryItems(false, true)) {
-		if (item->getID() != ITEM_GOLD_POUCH) {
+		if (item->getID() != ITEM_LOOT_POUCH) {
 			if (!item->hasMarketAttributes()) {
 				continue;
 			}
@@ -8146,7 +8146,7 @@ void sendStowItems(const std::shared_ptr<Item> &item, const std::shared_ptr<Item
 }
 
 void Player::stowItem(const std::shared_ptr<Item> &item, uint32_t count, bool allItems) {
-	if (!item || (!item->isItemStorable() && item->getID() != ITEM_GOLD_POUCH)) {
+	if (!item || (!item->isItemStorable() && item->getID() != ITEM_LOOT_POUCH)) {
 		sendCancelMessage("This item cannot be stowed here.");
 		return;
 	}
@@ -8162,7 +8162,7 @@ void Player::stowItem(const std::shared_ptr<Item> &item, uint32_t count, bool al
 			// Stow "all items" from loot pouch
 			const auto &itemParent = item->getParent();
 			const auto &lootPouch = itemParent->getItem();
-			if (itemParent && lootPouch && lootPouch->getID() == ITEM_GOLD_POUCH) {
+			if (itemParent && lootPouch && lootPouch->getID() == ITEM_LOOT_POUCH) {
 				sendStowItems(item, lootPouch, itemDict);
 			}
 		}
@@ -10384,7 +10384,7 @@ std::shared_ptr<Container> Player::getLootPouch() {
 		return nullptr;
 	}
 
-	const auto &inventoryItems = getInventoryItemsFromId(ITEM_GOLD_POUCH);
+	const auto &inventoryItems = getInventoryItemsFromId(ITEM_LOOT_POUCH);
 	if (inventoryItems.empty()) {
 		return nullptr;
 	}
