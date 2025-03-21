@@ -580,7 +580,7 @@ void Creature::onDeath() {
 			killer->onKilledMonster(thisMonster);
 		} else if (thisPlayer) {
 			bool isResponsible = mostDamageCreature == killer || (mostDamageCreatureMaster && mostDamageCreatureMaster == killer);
-			if (isResponsible) {
+			if (isResponsible && !lastHitUnjustified) {
 				killer->onKilledPlayer(thisPlayer, false);
 			}
 
@@ -1900,4 +1900,22 @@ void Creature::setCombatDamage(const CombatDamage &damage) {
 
 CombatDamage Creature::getCombatDamage() const {
 	return m_combatDamage;
+}
+
+void Creature::attachEffectById(uint16_t id) {
+	auto it = std::ranges::find(attachedEffectList, id);
+	if (it != attachedEffectList.end()) {
+		return;
+	}
+	attachedEffectList.push_back(id);
+	g_game().sendAttachedEffect(static_self_cast<Creature>(), id);
+}
+
+void Creature::detachEffectById(uint16_t id) {
+	auto it = std::ranges::find(attachedEffectList, id);
+	if (it == attachedEffectList.end()) {
+		return;
+	}
+	attachedEffectList.erase(it);
+	g_game().sendDetachEffect(static_self_cast<Creature>(), id);
 }
