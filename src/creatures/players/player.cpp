@@ -11164,7 +11164,7 @@ std::shared_ptr<Container> Player::getLootPouch() {
 		return nullptr;
 	}
 
-	const auto &inventoryItems = getInventoryItemsFromId(ITEM_GOLD_POUCH);
+	const auto &inventoryItems = getInventoryItemsFromId(ITEM_LOOT_POUCH);
 	if (inventoryItems.empty()) {
 		return nullptr;
 	}
