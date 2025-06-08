@@ -913,6 +913,10 @@ void Combat::combatTileEffects(const CreatureVector &spectators, const std::shar
 			case ITEM_MAGICWALL_PERSISTENT:
 				itemId = ITEM_MAGICWALL;
 				break;
+			
+			case ITEM_OLD_MAGICWALL_PERSISTENT:
+			    itemId = ITEM_OLD_MAGICWALL;
+			    break;
 
 			case ITEM_WILDGROWTH_PERSISTENT:
 				itemId = ITEM_WILDGROWTH;
@@ -940,10 +944,12 @@ void Combat::combatTileEffects(const CreatureVector &spectators, const std::shar
 						itemId = ITEM_ENERGYFIELD_NOPVP;
 					} else if (itemId == ITEM_MAGICWALL) {
 						itemId = ITEM_MAGICWALL_SAFE;
+					} else if (itemId == ITEM_OLD_MAGICWALL) {
+						itemId = ITEM_OLD_MAGICWALL_SAFE;
 					} else if (itemId == ITEM_WILDGROWTH) {
 						itemId = ITEM_WILDGROWTH_SAFE;
 					}
-				} else if (itemId == ITEM_FIREFIELD_PVP_FULL || itemId == ITEM_POISONFIELD_PVP || itemId == ITEM_ENERGYFIELD_PVP || itemId == ITEM_MAGICWALL || itemId == ITEM_WILDGROWTH) {
+				} else if (itemId == ITEM_FIREFIELD_PVP_FULL || itemId == ITEM_POISONFIELD_PVP || itemId == ITEM_ENERGYFIELD_PVP || itemId == ITEM_MAGICWALL || itemId == ITEM_OLD_MAGICWALL || itemId == ITEM_WILDGROWTH) {
 					casterPlayer->addInFightTicks();
 				}
 			}
@@ -2246,7 +2252,7 @@ void AreaCombat::setupExtArea(const std::list<uint32_t> &list, uint32_t rows) {
 
 void MagicField::onStepInField(const std::shared_ptr<Creature> &creature) {
 	// remove magic walls/wild growth
-	if ((!isBlocking() && g_game().getWorldType() == WORLD_TYPE_NO_PVP && id == ITEM_MAGICWALL_SAFE) || id == ITEM_WILDGROWTH_SAFE) {
+	if ((!isBlocking() && g_game().getWorldType() == WORLD_TYPE_NO_PVP && (id == ITEM_MAGICWALL_SAFE || id == ITEM_OLD_MAGICWALL_SAFE)) || id == ITEM_WILDGROWTH_SAFE) {
 		if (!creature->isInGhostMode()) {
 			g_game().internalRemoveItem(static_self_cast<Item>(), 1);
 		}

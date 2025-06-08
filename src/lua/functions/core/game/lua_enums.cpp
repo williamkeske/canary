@@ -893,6 +893,9 @@ void LuaEnums::initItemIdEnums(lua_State* L) {
 	registerEnum(L, ITEM_MAGICWALL);
 	registerEnum(L, ITEM_MAGICWALL_PERSISTENT);
 	registerEnum(L, ITEM_MAGICWALL_SAFE);
+	registerEnum(L, ITEM_OLD_MAGICWALL);
+	registerEnum(L, ITEM_OLD_MAGICWALL_PERSISTENT);
+	registerEnum(L, ITEM_OLD_MAGICWALL_SAFE);
 	registerEnum(L, ITEM_WILDGROWTH);
 	registerEnum(L, ITEM_WILDGROWTH_PERSISTENT);
 	registerEnum(L, ITEM_WILDGROWTH_SAFE);
