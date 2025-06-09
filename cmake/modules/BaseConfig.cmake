@@ -132,7 +132,7 @@ endif()
 option(
     TOGGLE_BIN_FOLDER
     "Use build/bin folder for generate compilation files"
-    OFF
+    ON
 )
 option(
     OPTIONS_ENABLE_OPENMP
