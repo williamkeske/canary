@@ -1,5 +1,5 @@
----
 name: Build - Windows - CMake
+
 on:
   workflow_dispatch:
   pull_request:
@@ -14,9 +14,11 @@ on:
       - "tests/**/*.cpp"
     branches:
       - main
+
 env:
   CMAKE_BUILD_PARALLEL_LEVEL: 2
   MAKEFLAGS: "-j 2"
+
 jobs:
   cancel-runs:
     if: github.event_name == 'pull_request' && github.ref != 'refs/heads/main'
@@ -29,50 +31,30 @@ jobs:
 
   job:
     if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
-    name: ${{ matrix.os }}-${{ matrix.buildtype }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-2022]
-        buildtype: [windows-release]
-        include:
-          - os: windows-2022
-            triplet: x64-windows-static
-            packages: >
-              sccache
+    name: windows-2022-release
+    runs-on: windows-2022
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@main
-
-      - name: CCache
-        uses: hendrikmuhs/ccache-action@main
-        with:
-          max-size: "1G"
-          variant: "sccache"
-          key: ccache-${{ matrix.os }}-${{ matrix.buildtype }}
-          restore-keys: |
-            ccache-${{ matrix.os }}
+        uses: actions/checkout@v4
 
       - name: Remove Windows pre-installed MySQL
-        if: contains( matrix.os, 'windows')
-        run: rm -r -fo C:/mysql*
+        run: Remove-Item -Recurse -Force "C:\mysql*"
 
-      - name: Restore artifacts and install vcpkg
-        id: vcpkg-step
+      - name: Restore artifacts and get vcpkg commit
         run: |
-          $json=Get-Content vcpkg.json -Raw | ConvertFrom-Json
-          $vcpkgCommitId=$json.'builtin-baseline'
-          Write-Host "vcpkg commit ID: $vcpkgCommitId"
+          $json = Get-Content vcpkg.json -Raw | ConvertFrom-Json
+          $vcpkgCommitId = $json.'builtin-baseline'
           echo "VCPKG_GIT_COMMIT_ID=$vcpkgCommitId" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      - name: Get vcpkg commit id from vcpkg.json
-        uses: lukka/run-vcpkg@main
+      - name: Install vcpkg
+        uses: lukka/run-vcpkg@v11
         with:
           vcpkgGitURL: "https://github.com/microsoft/vcpkg.git"
           vcpkgGitCommitId: ${{ env.VCPKG_GIT_COMMIT_ID }}
 
-      - name: Get latest CMake and ninja
-        uses: lukka/get-cmake@main
+      - name: Install latest CMake and Ninja
+        uses: lukka/get-cmake@latest
 
       - name: Run CMake
         uses: lukka/run-cmake@main
@@ -81,8 +63,11 @@ jobs:
           configurePreset: ${{ matrix.buildtype }}
           buildPreset: ${{ matrix.buildtype }}
 
-      - name: Create and Upload Artifact
-        uses: actions/upload-artifact@main
+      - name: List build output (debug)
+        run: Get-ChildItem -Recurse build
+
+      - name: Upload Executable
+        uses: actions/upload-artifact@v3
         with:
           name: canary-${{ matrix.buildtype }}-${{ github.sha }}
           path: |
