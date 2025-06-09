@@ -72,11 +72,10 @@ jobs:
       - name: Get latest CMake and ninja
         uses: lukka/get-cmake@main
 
-      - name: Run CMake
-        uses: lukka/run-cmake@main
-        with:
-          configurePreset: ${{ matrix.buildtype }}
-          buildPreset: ${{ matrix.buildtype }}
+      - name: Configure and Build with CMake
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -A x64 -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          cmake --build build --config Release
 
       - name: Create and Upload Artifact
         uses: actions/upload-artifact@main
