@@ -5521,7 +5521,7 @@ std::map<uint32_t, uint32_t> &Player::getAllItemTypeCount(std::map<uint32_t, uin
 
 std::map<uint16_t, uint16_t> &Player::getAllSaleItemIdAndCount(std::map<uint16_t, uint16_t> &countMap) const {
 	for (const auto &item : getAllInventoryItems(false, true)) {
-		if (item->getID() != ITEM_GOLD_POUCH) {
+		if (item->getID() != ITEM_LOOT_POUCH) {
 			if (!item->hasMarketAttributes()) {
 				continue;
 			}
@@ -8869,7 +8869,7 @@ void Player::stowItem(const std::shared_ptr<Item> &item, uint32_t count, bool al
 
 			// Stow items from loot pouch
 			if (const auto &itemParent = item->getParent()) {
-				if (const auto &lootPouch = itemParent->getItem(); lootPouch && lootPouch->getID() == ITEM_GOLD_POUCH) {
+				if (const auto &lootPouch = itemParent->getItem(); lootPouch && lootPouch->getID() == ITEM_LOOT_POUCH) {
 					totalItemsToStow += sendStowItems(item, lootPouch, itemDict, totalItemsToStow, maxItemsToStow);
 				}
 			}
