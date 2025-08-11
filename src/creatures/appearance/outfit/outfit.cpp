@@ -76,6 +76,104 @@ bool Outfits::loadFromXml() {
 			outfitNode.attribute("unlocked").as_bool(true),
 			outfitNode.attribute("from").as_string()
 		));
+		
+		outfit->manaShield = outfitNode.attribute("manaShield").as_bool() || outfitNode.attribute("manashield").as_bool();
+		outfit->invisible = outfitNode.attribute("invisible").as_bool();
+		outfit->speed = outfitNode.attribute("speed").as_int();
+		outfit->attackSpeed = outfitNode.attribute("attackSpeed").as_int() || outfitNode.attribute("attackspeed").as_int();
+
+		if (auto healthGainAttr = outfitNode.attribute("healthGain")) {
+			outfit->healthGain = healthGainAttr.as_int();
+			outfit->regeneration = true;
+		}
+
+		if (auto healthTicksAttr = outfitNode.attribute("healthTicks")) {
+			outfit->healthTicks = healthTicksAttr.as_int();
+			outfit->regeneration = true;
+		}
+
+		if (auto manaGainAttr = outfitNode.attribute("manaGain")) {
+			outfit->manaGain = manaGainAttr.as_int();
+			outfit->regeneration = true;
+		}
+
+		if (auto manaTicksAttr = outfitNode.attribute("manaTicks")) {
+			outfit->manaTicks = manaTicksAttr.as_int();
+			outfit->regeneration = true;
+		}
+
+		if (auto skillsNode = outfitNode.child("skills")) {
+			for (auto skillNode : skillsNode.children()) {
+				std::string skillName = skillNode.name();
+				int32_t skillValue = skillNode.attribute("value").as_int();
+
+				if (skillName == "fist") {
+					outfit->skills[SKILL_FIST] += skillValue;
+				} else if (skillName == "club") {
+					outfit->skills[SKILL_CLUB] += skillValue;
+				} else if (skillName == "axe") {
+					outfit->skills[SKILL_AXE] += skillValue;
+				} else if (skillName == "sword") {
+					outfit->skills[SKILL_SWORD] += skillValue;
+				} else if (skillName == "distance" || skillName == "dist") {
+					outfit->skills[SKILL_DISTANCE] += skillValue;
+				} else if (skillName == "shielding" || skillName == "shield") {
+					outfit->skills[SKILL_SHIELD] = skillValue;
+				} else if (skillName == "fishing" || skillName == "fish") {
+					outfit->skills[SKILL_FISHING] += skillValue;
+				} else if (skillName == "melee") {
+					outfit->skills[SKILL_FIST] += skillValue;
+					outfit->skills[SKILL_CLUB] += skillValue;
+					outfit->skills[SKILL_SWORD] += skillValue;
+					outfit->skills[SKILL_AXE] += skillValue;
+				} else if (skillName == "weapon" || skillName == "weapons") {
+					outfit->skills[SKILL_CLUB] += skillValue;
+					outfit->skills[SKILL_SWORD] += skillValue;
+					outfit->skills[SKILL_AXE] += skillValue;
+					outfit->skills[SKILL_DISTANCE] += skillValue;
+				}
+			}
+		}
+
+		if (auto statsNode = outfitNode.child("stats")) {
+			for (auto statNode : statsNode.children()) {
+				std::string statName = statNode.name();
+				int32_t statValue = statNode.attribute("value").as_int();
+
+				if (statName == "maxHealth" || statName == "maxhealth") {
+					outfit->stats[STAT_MAXHITPOINTS] += statValue;
+				} else if (statName == "maxMana" || statName == "maxmana") {
+					outfit->stats[STAT_MAXMANAPOINTS] += statValue;
+				} else if (statName == "cap" || statName == "capacity") {
+					outfit->stats[STAT_CAPACITY] += statValue * 100;
+				} else if (statName == "magLevel" || statName == "magicLevel" || statName == "magiclevel" || statName == "ml") {
+					outfit->stats[STAT_MAGICPOINTS] += statValue;
+				}
+			}
+		}
+
+		if (auto imbuingNode = outfitNode.child("imbuing")) {
+			for (auto imbuing : imbuingNode.children()) {
+				std::string imbuingName = imbuing.name();
+				double imbuingValue = imbuing.attribute("value").as_double() * 100.0;
+
+				if (imbuingName == "lifeLeechChance" || imbuingName == "lifeleechchance") {
+					outfit->lifeLeechChance += imbuingValue;
+				} else if (imbuingName == "lifeleechAmount" || imbuingName == "lifeleechamount") {
+					outfit->lifeLeechAmount += imbuingValue;
+				} else if (imbuingName == "manaLeechChance" || imbuingName == "manaleechchance") {
+					outfit->manaLeechChance += imbuingValue;
+				} else if (imbuingName == "manaLeechAmount" || imbuingName == "manaleechamount") {
+					outfit->manaLeechAmount += imbuingValue;
+				} else if (imbuingName == "criticalChance" || imbuingName == "criticalchance") {
+					outfit->criticalChance += imbuingValue;
+				} else if (imbuingName == "criticalDamage" || imbuingName == "criticaldamage") {
+					outfit->criticalDamage += imbuingValue;
+				}
+			}
+		}
+
+		outfits[type].emplace_back(outfit);
 	}
 	for (uint8_t sex = PLAYERSEX_FEMALE; sex <= PLAYERSEX_LAST; ++sex) {
 		outfits[sex].shrink_to_fit();
