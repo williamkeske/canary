@@ -8,7 +8,8 @@
  */
 
 #include "creatures/appearance/outfit/outfit.hpp"
-
+#include "creatures/combat/condition.hpp"
+#include "creatures/creatures_definitions.hpp"
 #include "config/configmanager.hpp"
 #include "creatures/players/player.hpp"
 #include "game/game.hpp"
@@ -120,4 +121,193 @@ std::shared_ptr<Outfit> Outfits::getOutfitByName(PlayerSex_t sex, const std::str
 	}
 
 	return nullptr;
+}
+
+uint32_t Outfits::getOutfitId(PlayerSex_t sex, uint16_t lookType) const {
+	for (const auto &outfit : outfits[sex]) {
+		if (outfit->lookType == lookType) {
+			return outfit->lookType;
+		}
+	}
+
+	return 0;
+}
+
+bool Outfits::addAttributes(uint32_t playerId, uint32_t outfitId, uint16_t sex, uint16_t addons) {
+	const auto &player = g_game().getPlayerByID(playerId);
+	if (!player) {
+		return false;
+	}
+
+	auto &outfitsList = outfits[sex];
+	auto it = std::ranges::find_if(outfitsList, [&outfitId](const auto &outfit) {
+		return outfit->lookType == outfitId;
+	});
+
+	if (it == outfitsList.end()) {
+		return false;
+	}
+
+	const auto &outfit = *it;
+
+	// Apply Conditions
+	if (outfit->manaShield) {
+		const auto &condition = Condition::createCondition(CONDITIONID_OUTFIT, CONDITION_MANASHIELD, -1, 0);
+		player->addCondition(condition);
+	}
+
+	if (outfit->invisible) {
+		const auto &condition = Condition::createCondition(CONDITIONID_OUTFIT, CONDITION_INVISIBLE, -1, 0);
+		player->addCondition(condition);
+	}
+
+	if (outfit->speed) {
+		g_game().changeSpeed(player, outfit->speed);
+	}
+
+	if (outfit->regeneration) {
+		const auto &condition = Condition::createCondition(CONDITIONID_OUTFIT, CONDITION_REGENERATION, -1, 0);
+		if (outfit->healthGain) {
+			condition->setParam(CONDITION_PARAM_HEALTHGAIN, outfit->healthGain);
+		}
+
+		if (outfit->healthTicks) {
+			condition->setParam(CONDITION_PARAM_HEALTHTICKS, outfit->healthTicks);
+		}
+
+		if (outfit->manaGain) {
+			condition->setParam(CONDITION_PARAM_MANAGAIN, outfit->manaGain);
+		}
+
+		if (outfit->manaTicks) {
+			condition->setParam(CONDITION_PARAM_MANATICKS, outfit->manaTicks);
+		}
+
+		player->addCondition(condition);
+	}
+
+	// Apply skills
+	for (uint32_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
+		if (outfit->skills[i]) {
+			player->setVarSkill(static_cast<skills_t>(i), outfit->skills[i]);
+		}
+	}
+
+	// Apply life leech
+	if (outfit->lifeLeechChance > 0) {
+		player->setVarSkill(SKILL_LIFE_LEECH_CHANCE, outfit->lifeLeechChance);
+	}
+
+	if (outfit->lifeLeechAmount > 0) {
+		player->setVarSkill(SKILL_LIFE_LEECH_AMOUNT, outfit->lifeLeechAmount);
+	}
+
+	// Apply mana leech
+	if (outfit->manaLeechChance > 0) {
+		player->setVarSkill(SKILL_MANA_LEECH_CHANCE, outfit->manaLeechChance);
+	}
+
+	if (outfit->manaLeechAmount > 0) {
+		player->setVarSkill(SKILL_MANA_LEECH_AMOUNT, outfit->manaLeechAmount);
+	}
+
+	// Apply critical hit
+	if (outfit->criticalChance > 0) {
+		player->setVarSkill(SKILL_CRITICAL_HIT_CHANCE, outfit->criticalChance);
+	}
+
+	if (outfit->criticalDamage > 0) {
+		player->setVarSkill(SKILL_CRITICAL_HIT_DAMAGE, outfit->criticalDamage);
+	}
+
+	// Apply stats
+	for (uint32_t s = STAT_FIRST; s <= STAT_LAST; ++s) {
+		if (outfit->stats[s]) {
+			player->setVarStats(static_cast<stats_t>(s), outfit->stats[s]);
+		}
+	}
+
+	player->sendStats();
+	player->sendSkills();
+	return true;
+}
+
+bool Outfits::removeAttributes(uint32_t playerId, uint32_t outfitId, uint16_t sex) {
+	const auto &player = g_game().getPlayerByID(playerId);
+	if (!player) {
+		return false;
+	}
+
+	auto &outfitsList = outfits[sex];
+	auto it = std::ranges::find_if(outfitsList, [&outfitId](const auto &outfit) {
+		return outfit->lookType == outfitId;
+	});
+
+	if (it == outfitsList.end()) {
+		return false;
+	}
+
+	const auto &outfit = *it;
+
+	// Remove conditions
+	if (outfit->manaShield) {
+		player->removeCondition(CONDITION_MANASHIELD, CONDITIONID_OUTFIT);
+	}
+
+	if (outfit->invisible) {
+		player->removeCondition(CONDITION_INVISIBLE, CONDITIONID_OUTFIT);
+	}
+
+	if (outfit->speed) {
+		g_game().changeSpeed(player, -outfit->speed);
+	}
+
+	if (outfit->regeneration) {
+		player->removeCondition(CONDITION_REGENERATION, CONDITIONID_OUTFIT);
+	}
+
+	// Remove skills
+	for (uint32_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
+		if (outfit->skills[i]) {
+			player->setVarSkill(static_cast<skills_t>(i), -outfit->skills[i]);
+		}
+	}
+
+	// Remove life leech
+	if (outfit->lifeLeechChance > 0) {
+		player->setVarSkill(SKILL_LIFE_LEECH_CHANCE, -outfit->lifeLeechChance);
+	}
+
+	if (outfit->lifeLeechAmount > 0) {
+		player->setVarSkill(SKILL_LIFE_LEECH_AMOUNT, -outfit->lifeLeechAmount);
+	}
+
+	// Remove mana leech
+	if (outfit->manaLeechChance > 0) {
+		player->setVarSkill(SKILL_MANA_LEECH_CHANCE, -outfit->manaLeechChance);
+	}
+
+	if (outfit->manaLeechAmount > 0) {
+		player->setVarSkill(SKILL_MANA_LEECH_AMOUNT, -outfit->manaLeechAmount);
+	}
+
+	// Remove critical hit
+	if (outfit->criticalChance > 0) {
+		player->setVarSkill(SKILL_CRITICAL_HIT_CHANCE, -outfit->criticalChance);
+	}
+
+	if (outfit->criticalDamage > 0) {
+		player->setVarSkill(SKILL_CRITICAL_HIT_DAMAGE, -outfit->criticalDamage);
+	}
+
+	// Remove stats
+	for (uint32_t s = STAT_FIRST; s <= STAT_LAST; ++s) {
+		if (outfit->stats[s]) {
+			player->setVarStats(static_cast<stats_t>(s), -outfit->stats[s]);
+		}
+	}
+
+	player->sendStats();
+	player->sendSkills();
+	return true;
 }

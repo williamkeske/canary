@@ -1647,6 +1647,7 @@ private:
 	bool imbuementTrackerWindowOpen = false;
 	bool shouldForceLogout = true;
 	bool connProtected = false;
+	bool outfitAttributes = false;
 
 	// Hazard system
 	int64_t lastHazardSystemCriticalHit = 0;

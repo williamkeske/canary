@@ -6249,6 +6249,30 @@ void Player::changeSoul(int32_t soulChange) {
 	sendStats();
 }
 
+bool Player::changeOutfit(Outfit_t outfit, bool checkList) {
+    auto outfitId = Outfits::getInstance().getOutfitId(getSex(), outfit.lookType);
+    if (checkList && (!canWearOutfit(outfitId, outfit.lookAddons) || !requestedOutfit)) {
+        return false;
+    }
+
+    requestedOutfit = false;
+    if (outfitAttributes) {
+        auto oldId = Outfits::getInstance().getOutfitId(getSex(), defaultOutfit.lookType);
+        if (defaultOutfit.lookAddons == 3) {
+            outfitAttributes = !Outfits::getInstance().removeAttributes(getID(), oldId, getSex());
+        }
+    }
+
+    defaultOutfit = outfit;
+    if (outfit.lookAddons == 3) {
+        outfitAttributes = Outfits::getInstance().addAttributes(getID(), outfitId, getSex(), defaultOutfit.lookAddons);
+    } else {
+        outfitAttributes = false;
+    }
+
+    return true;
+}
+
 bool Player::canWear(uint16_t lookType, uint8_t addons) const {
 	if (g_configManager().getBoolean(WARN_UNSAFE_SCRIPTS) && lookType != 0 && !g_game().isLookTypeRegistered(lookType)) {
 		g_logger().warn("[Player::canWear] An unregistered creature looktype type with id '{}' was blocked to prevent client crash.", lookType);
