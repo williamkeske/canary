@@ -6173,6 +6173,9 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool setMount,
 		return;
 	}
 
+	if (!player->changeOutfit(outfit, true)) {
+		return;
+	}						   
 	if (player->isWearingSupportOutfit()) {
 		outfit.lookMount = 0;
 		isMountRandomized = 0;
@@ -6221,6 +6224,16 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool setMount,
 		changeSpeed(player, deltaSpeedChange);
 	} else if (player->isMounted()) {
 		player->dismount();
+	}
+	
+	if (player->canWearOutfit(outfit.lookType, outfit.lookAddons)) {
+		player->defaultOutfit = outfit;
+
+		if (player->hasCondition(CONDITION_OUTFIT)) {
+			return;
+		}
+
+		internalCreatureChangeOutfit(player, outfit);
 	}
 
 	if (player->canWear(outfit.lookType, outfit.lookAddons)) {
