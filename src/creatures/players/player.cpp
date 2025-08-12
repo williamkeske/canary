@@ -6257,15 +6257,15 @@ bool Player::changeOutfit(Outfit_t outfit, bool checkList) {
 
 	requestedOutfit = false;
 	if (outfitAttributes) {
-		auto oldId = Outfits::getInstance().getOutfitId(getSex(), getDefaultOutfit().lookType);
-		if (getDefaultOutfit().lookAddons == 3) {
+		auto oldId = Outfits::getInstance().getOutfitId(getSex(), defaultOutfit.lookType);
+		if (defaultOutfit.lookAddons == 3) {
 			outfitAttributes = !Outfits::getInstance().removeAttributes(getID(), oldId, getSex());
 		}
 	}
 
-	getDefaultOutfit() = outfit;
+	defaultOutfit = outfit;
 	if (outfit.lookAddons == 3) {
-		outfitAttributes = Outfits::getInstance().addAttributes(getID(), outfitId, getSex(), getDefaultOutfit().lookAddons);
+		outfitAttributes = Outfits::getInstance().addAttributes(getID(), outfitId, getSex(), defaultOutfit.lookAddons);
 	} else {
 		outfitAttributes = false;
 	}
