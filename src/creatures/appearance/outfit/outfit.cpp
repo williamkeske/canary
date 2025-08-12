@@ -250,12 +250,12 @@ bool Outfits::addAttributes(uint32_t playerId, uint32_t outfitId, uint16_t sex, 
 
 	// Apply Conditions
 	if (outfit->manaShield) {
-		auto condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_MANASHIELD, -1, 0);
+		auto condition = Condition::createCondition(CONDITIONID_OUTFIT, CONDITION_MANASHIELD, -1, 0);
 		player->addCondition(condition);
 	}
 
 	if (outfit->invisible) {
-		auto condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_INVISIBLE, -1, 0);
+		auto condition = Condition::createCondition(CONDITIONID_OUTFIT, CONDITION_INVISIBLE, -1, 0);
 		player->addCondition(condition);
 	}
 
@@ -264,7 +264,7 @@ bool Outfits::addAttributes(uint32_t playerId, uint32_t outfitId, uint16_t sex, 
 	}
 
 	if (outfit->regeneration) {
-		auto condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_REGENERATION, -1, 0);
+		auto condition = Condition::createCondition(CONDITIONID_OUTFIT, CONDITION_REGENERATION, -1, 0);
 		if (outfit->healthGain) {
 			condition->setParam(CONDITION_PARAM_HEALTHGAIN, outfit->healthGain);
 		}
@@ -349,11 +349,11 @@ bool Outfits::removeAttributes(uint32_t playerId, uint32_t outfitId, uint16_t se
 
 	// Remove conditions
 	if (outfit->manaShield) {
-		player->removeCondition(CONDITION_MANASHIELD, CONDITIONID_DEFAULT);
+		player->removeCondition(CONDITION_MANASHIELD, CONDITIONID_OUTFIT);
 	}
 
 	if (outfit->invisible) {
-		player->removeCondition(CONDITION_INVISIBLE, CONDITIONID_DEFAULT);
+		player->removeCondition(CONDITION_INVISIBLE, CONDITIONID_OUTFIT);
 	}
 
 	if (outfit->speed) {
@@ -361,7 +361,7 @@ bool Outfits::removeAttributes(uint32_t playerId, uint32_t outfitId, uint16_t se
 	}
 
 	if (outfit->regeneration) {
-		player->removeCondition(CONDITION_REGENERATION, CONDITIONID_DEFAULT);
+		player->removeCondition(CONDITION_REGENERATION, CONDITIONID_OUTFIT);
 	}
 
 	// Remove skills
