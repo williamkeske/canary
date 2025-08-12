@@ -6339,14 +6339,6 @@ bool Player::canWear(uint16_t lookType, uint8_t addons) const {
 	return false;
 }
 
-void Player::setOutfitsModified(bool modified) {
-	outfitsModified = modified;
-}
-
-bool Player::isOutfitsModified() const {
-	return outfitsModified;
-}
-
 void Player::genReservedStorageRange() {
 	// generate outfits range
 	uint32_t outfits_key = PSTRG_OUTFITS_RANGE_START;
@@ -6381,13 +6373,11 @@ void Player::setSpecialMenuAvailable(bool stashBool, bool marketMenuBool, bool d
 void Player::addOutfit(uint16_t lookType, uint8_t addons) {
 	for (auto &outfitEntry : outfits) {
 		if (outfitEntry.lookType == lookType) {
-			setOutfitsModified(true);
 			outfitEntry.addons |= addons;
 			return;
 		}
 	}
 	
-	setOutfitsModified(true);
 	outfits.emplace_back(lookType, addons);
 }
 
@@ -6396,7 +6386,6 @@ bool Player::removeOutfit(uint16_t lookType) {
 		const auto &entry = *it;
 		if (entry.lookType == lookType) {
 			outfits.erase(it);
-			setOutfitsModified(true);
 			return true;
 		}
 	}
@@ -6407,7 +6396,6 @@ bool Player::removeOutfitAddon(uint16_t lookType, uint8_t addons) {
 	for (OutfitEntry &outfitEntry : outfits) {
 		if (outfitEntry.lookType == lookType) {
 			outfitEntry.addons &= ~addons;
-			setOutfitsModified(true);
 			return true;
 		}
 	}
