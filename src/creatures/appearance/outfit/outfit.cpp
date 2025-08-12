@@ -69,13 +69,13 @@ bool Outfits::loadFromXml() {
 			continue;
 		}
 
-		outfits[type].emplace_back(std::make_shared<Outfit>(
+		auto outfit = std::make_shared<Outfit>(
 			outfitNode.attribute("name").as_string(),
-			pugi::cast<uint16_t>(lookTypeAttribute.value()),
+			outfitNode.attribute("from").as_string(),
 			outfitNode.attribute("premium").as_bool(),
 			outfitNode.attribute("unlocked").as_bool(true),
-			outfitNode.attribute("from").as_string()
-		));
+			pugi::cast<uint16_t>(lookTypeAttribute.value())
+		);
 		
 		outfit->manaShield = outfitNode.attribute("manaShield").as_bool() || outfitNode.attribute("manashield").as_bool();
 		outfit->invisible = outfitNode.attribute("invisible").as_bool();
