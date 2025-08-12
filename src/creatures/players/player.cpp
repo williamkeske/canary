@@ -6775,12 +6775,27 @@ bool Player::isPromoted() const {
 }
 
 uint32_t Player::getAttackSpeed() const {
+	int32_t modifiers = 0;
 	bool onFistAttackSpeed = g_configManager().getBoolean(TOGGLE_ATTACK_SPEED_ONFIST);
 	uint32_t MAX_ATTACK_SPEED = g_configManager().getNumber(MAX_SPEED_ATTACKONFIST);
+	
+	if (outfitAttributes) {
+		const auto &outfit = Outfits::getInstance().getOutfitByLookType(getPlayer(), defaultOutfit.lookType);
+		if (outfit) {
+			if (outfit->attackSpeed > 0) {
+				if (outfit->attackSpeed >= vocation->getAttackSpeed()) {
+					modifiers = 0;
+				} else {
+					modifiers += outfit->attackSpeed;
+				}
+			}
+		}
+	}
+
 	if (onFistAttackSpeed) {
 		uint32_t baseAttackSpeed = vocation->getAttackSpeed();
 		uint32_t skillLevel = getSkillLevel(SKILL_FIST);
-		uint32_t attackSpeed = baseAttackSpeed - (skillLevel * g_configManager().getNumber(MULTIPLIER_ATTACKONFIST));
+		uint32_t attackSpeed = baseAttackSpeed - (skillLevel * g_configManager().getNumber(MULTIPLIER_ATTACKONFIST)) - modifiers;
 
 		if (attackSpeed < MAX_ATTACK_SPEED) {
 			attackSpeed = MAX_ATTACK_SPEED;
@@ -6788,7 +6803,8 @@ uint32_t Player::getAttackSpeed() const {
 
 		return attackSpeed;
 	} else {
-		return vocation->getAttackSpeed();
+		uint32_t attackSpeed = vocation->getAttackSpeed() - modifiers;
+		return attackSpeed;
 	}
 }
 
@@ -10674,7 +10690,16 @@ void Player::onCreatureAppear(const std::shared_ptr<Creature> &creature, bool is
 
 	if (isLogin && creature == getPlayer()) {
 		onEquipInventory();
-
+		
+		const auto &outfit = Outfits::getInstance().getOutfitByLookType(getPlayer(), defaultOutfit.lookType);
+		if (outfit) {
+			if (defaultOutfit.lookAddons == 3) {
+				outfitAttributes = Outfits::getInstance().addAttributes(getID(), defaultOutfit.lookType, getSex(), defaultOutfit.lookAddons);
+			} else {
+				outfitAttributes = false;
+			}
+		}
+		
 		// Refresh bosstiary tracker onLogin
 		refreshCyclopediaMonsterTracker(true);
 		// Refresh bestiary tracker onLogin
