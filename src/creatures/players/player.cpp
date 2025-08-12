@@ -6250,28 +6250,65 @@ void Player::changeSoul(int32_t soulChange) {
 }
 
 bool Player::changeOutfit(Outfit_t outfit, bool checkList) {
-    if (checkList && (!canWear(outfit.lookType, outfit.lookAddons) || !requestedOutfit)) {
-        return false;
-    }
+	auto outfitId = Outfits::getInstance().getOutfitId(getSex(), outfit.lookType);
+	if (checkList && (!canWearOutfit(outfitId, outfit.lookAddons) || !requestedOutfit)) {
+		return false;
+	}
 
-    requestedOutfit = false;
-    if (outfitAttributes) {
-        Outfit_t oldOutfit = getDefaultOutfit();
-        if (oldOutfit.lookAddons == 3) {
-            auto oldId = Outfits::getInstance().getOutfitId(getSex(), oldOutfit.lookType);
-            outfitAttributes = !Outfits::getInstance().removeAttributes(getID(), oldId, getSex());
-        }
-    }
+	requestedOutfit = false;
+	if (outfitAttributes) {
+		auto oldId = Outfits::getInstance().getOutfitId(getSex(), getDefaultOutfit().lookType);
+		if (getDefaultOutfit().lookAddons == 3) {
+			outfitAttributes = !Outfits::getInstance().removeAttributes(getID(), oldId, getSex());
+		}
+	}
 
-    setDefaultOutfit(outfit);
-    if (outfit.lookAddons == 3) {
-        auto outfitId = Outfits::getInstance().getOutfitId(getSex(), outfit.lookType);
-        outfitAttributes = Outfits::getInstance().addAttributes(getID(), outfitId, getSex(), outfit.lookAddons);
-    } else {
-        outfitAttributes = false;
-    }
+	getDefaultOutfit() = outfit;
+	if (outfit.lookAddons == 3) {
+		outfitAttributes = Outfits::getInstance().addAttributes(getID(), outfitId, getSex(), getDefaultOutfit().lookAddons);
+	} else {
+		outfitAttributes = false;
+	}
 
-    return true;
+	return true;
+}
+
+bool Player::canWearOutfit(uint16_t lookType, uint8_t addons) const {
+	if (g_configManager().getBoolean(WARN_UNSAFE_SCRIPTS) && lookType != 0 && !g_game().isLookTypeRegistered(lookType)) {
+		g_logger().warn("[Player::canWearOutfit] An unregistered creature looktype type with id '{}' was blocked to prevent client crash.", lookType);
+		return false;
+	}
+
+	if (group->access) {
+		return true;
+	}
+
+	const auto &outfit = Outfits::getInstance().getOutfitByLookType(getPlayer(), lookType);
+	if (!outfit) {
+		return false;
+	}
+
+	if (g_configManager().getBoolean(UNLOCK_ALL_OUTFITS)) {
+		return true;
+	}
+
+	if (outfit->premium && !isPremium()) {
+		return false;
+	}
+
+	if (outfit->unlocked && addons == 0) {
+		return true;
+	}
+
+	for (const auto &outfitEntry : outfitsMap) {
+		if (outfitEntry.lookType == lookType) {
+			if (outfitEntry.addons == addons || outfitEntry.addons == 3 || addons == 0) {
+				return true;
+			}
+			return false; // have lookType on list and addons don't match
+		}
+	}
+	return false;
 }
 
 bool Player::canWear(uint16_t lookType, uint8_t addons) const {

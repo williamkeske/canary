@@ -772,6 +772,7 @@ public:
 	void checkSkullTicks(int64_t ticks);
 
 	bool canWear(uint16_t lookType, uint8_t addons) const;
+	bool canWearOutfit(uint16_t lookType, uint8_t addons) const;
 	void addOutfit(uint16_t lookType, uint8_t addons);
 	bool removeOutfit(uint16_t lookType);
 	bool removeOutfitAddon(uint16_t lookType, uint8_t addons);
