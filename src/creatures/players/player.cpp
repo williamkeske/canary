@@ -6250,22 +6250,23 @@ void Player::changeSoul(int32_t soulChange) {
 }
 
 bool Player::changeOutfit(Outfit_t outfit, bool checkList) {
-    auto outfitId = Outfits::getInstance().getOutfitId(getSex(), outfit.lookType);
-    if (checkList && (!canWear(outfitId, outfit.lookAddons) || !requestedOutfit)) {
+    if (checkList && (!canWear(outfit.lookType, outfit.lookAddons) || !requestedOutfit)) {
         return false;
     }
 
     requestedOutfit = false;
     if (outfitAttributes) {
-        auto oldId = Outfits::getInstance().getOutfitId(getSex(), defaultOutfit.lookType);
-        if (defaultOutfit.lookAddons == 3) {
+        Outfit_t oldOutfit = getDefaultOutfit();
+        if (oldOutfit.lookAddons == 3) {
+            auto oldId = Outfits::getInstance().getOutfitId(getSex(), oldOutfit.lookType);
             outfitAttributes = !Outfits::getInstance().removeAttributes(getID(), oldId, getSex());
         }
     }
 
-    defaultOutfit = outfit;
+    setDefaultOutfit(outfit);
     if (outfit.lookAddons == 3) {
-        outfitAttributes = Outfits::getInstance().addAttributes(getID(), outfitId, getSex(), defaultOutfit.lookAddons);
+        auto outfitId = Outfits::getInstance().getOutfitId(getSex(), outfit.lookType);
+        outfitAttributes = Outfits::getInstance().addAttributes(getID(), outfitId, getSex(), outfit.lookAddons);
     } else {
         outfitAttributes = false;
     }
