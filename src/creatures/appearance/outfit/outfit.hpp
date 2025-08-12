@@ -76,7 +76,7 @@ public:
 	[[nodiscard]] std::shared_ptr<Outfit> getOutfitByLookType(const std::shared_ptr<const Player> &player, uint16_t lookType, bool isOppositeOutfit = false) const;
 	[[nodiscard]] const std::vector<std::shared_ptr<Outfit>> &getOutfits(PlayerSex_t sex) const;
 
-	std::shared_ptr<Outfit> getOutfitByName(PlayerSex_t sex, const std::string_view &name) const;
+	std::shared_ptr<Outfit> getOutfitByName(PlayerSex_t sex, const std::string &name) const;
 	uint32_t getOutfitId(PlayerSex_t sex, uint16_t lookType) const;
 
 	bool addAttributes(uint32_t playerId, uint32_t outfitId, uint16_t sex, uint16_t addons);
