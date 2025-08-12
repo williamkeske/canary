@@ -6250,52 +6250,32 @@ void Player::changeSoul(int32_t soulChange) {
 }
 
 bool Player::changeOutfit(Outfit_t outfit, bool checkList) {
-    std::cout << "[DEBUG] changeOutfit() chamado: lookType=" << outfit.lookType 
-              << ", addons=" << static_cast<int>(outfit.lookAddons) << std::endl;
-
     auto outfitId = Outfits::getInstance().getOutfitId(getSex(), outfit.lookType);
-    std::cout << "[DEBUG] outfitId calculado = " << outfitId << std::endl;
+	if (checkList && (!canWear(outfitId, outfit.lookAddons) || !requestedOutfit)) {
+		return false;
+	}
 
-    if (checkList && (!canWearOutfit(outfitId, outfit.lookAddons) || !requestedOutfit)) {
-        std::cout << "[DEBUG] Falha no checkList: canWearOutfit=" 
-                  << (canWearOutfit(outfitId, outfit.lookAddons) ? "true" : "false")
-                  << ", requestedOutfit=" << (requestedOutfit ? "true" : "false") << std::endl;
-        return false;
-    }
+	requestedOutfit = false;
+	if (outfitAttributes) {
+		auto oldId = Outfits::getInstance().getOutfitId(getSex(), defaultOutfit.lookType);
+		if (defaultOutfit.lookAddons == 3) {
+			outfitAttributes = !Outfits::getInstance().removeAttributes(getID(), oldId, getSex());
+		}
+	}
 
-    requestedOutfit = false;
+	defaultOutfit = outfit;
+	if (outfit.lookAddons == 3) {
+		outfitAttributes = Outfits::getInstance().addAttributes(getID(), outfitId, getSex(), defaultOutfit.lookAddons);
+	} else {
+		outfitAttributes = false;
+	}
 
-    if (outfitAttributes) {
-        auto oldId = Outfits::getInstance().getOutfitId(getSex(), defaultOutfit.lookType);
-        std::cout << "[DEBUG] Removendo atributos do outfit anterior: oldLookType=" 
-                  << defaultOutfit.lookType << ", addons=" << static_cast<int>(defaultOutfit.lookAddons)
-                  << ", oldId=" << oldId << std::endl;
-
-        if (defaultOutfit.lookAddons == 3) {
-            bool removed = Outfits::getInstance().removeAttributes(getID(), oldId, getSex());
-            std::cout << "[DEBUG] removeAttributes retornou " << (removed ? "true" : "false") << std::endl;
-            outfitAttributes = !removed;
-        }
-    }
-
-    defaultOutfit = outfit;
-
-    if (outfit.lookAddons == 3) {
-        std::cout << "[DEBUG] Aplicando atributos para outfitId=" << outfitId << std::endl;
-        bool added = Outfits::getInstance().addAttributes(getID(), outfitId, getSex(), defaultOutfit.lookAddons);
-        std::cout << "[DEBUG] addAttributes retornou " << (added ? "true" : "false") << std::endl;
-        outfitAttributes = added;
-    } else {
-        std::cout << "[DEBUG] Outfit não tem os dois addons, não aplicando atributos" << std::endl;
-        outfitAttributes = false;
-    }
-
-    return true;
+	return true;
 }
 
-bool Player::canWearOutfit(uint16_t lookType, uint8_t addons) const {
+bool Player::canWear(uint16_t lookType, uint8_t addons) const {
 	if (g_configManager().getBoolean(WARN_UNSAFE_SCRIPTS) && lookType != 0 && !g_game().isLookTypeRegistered(lookType)) {
-		g_logger().warn("[Player::canWearOutfit] An unregistered creature looktype type with id '{}' was blocked to prevent client crash.", lookType);
+		g_logger().warn("[Player::canWear] An unregistered creature looktype type with id '{}' was blocked to prevent client crash.", lookType);
 		return false;
 	}
 
@@ -6323,38 +6303,6 @@ bool Player::canWearOutfit(uint16_t lookType, uint8_t addons) const {
 			}
 			return false; // have lookType on list and addons don't match
 		}
-	}
-	return false;
-}
-
-bool Player::canWear(uint16_t lookType, uint8_t addons) const {
-	if (g_configManager().getBoolean(WARN_UNSAFE_SCRIPTS) && lookType != 0 && !g_game().isLookTypeRegistered(lookType)) {
-		g_logger().warn("[Player::canWear] An unregistered creature looktype type with id '{}' was blocked to prevent client crash.", lookType);
-		return false;
-	}
-
-	if (group && group->access) {
-		return true;
-	}
-
-	const auto &outfit = Outfits::getInstance().getOutfitByLookType(getPlayer(), lookType);
-	if (!outfit) {
-		return false;
-	}
-
-	if (outfit->premium && !isPremium()) {
-		return false;
-	}
-
-	if (outfit->unlocked && addons == 0) {
-		return true;
-	}
-
-	for (const auto &outfitEntry : outfits) {
-		if (outfitEntry.lookType != lookType) {
-			continue;
-		}
-		return (outfitEntry.addons & addons) == addons;
 	}
 	return false;
 }
