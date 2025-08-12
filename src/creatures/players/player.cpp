@@ -6288,10 +6288,6 @@ bool Player::canWearOutfit(uint16_t lookType, uint8_t addons) const {
 		return false;
 	}
 
-	if (g_configManager().getBoolean(UNLOCK_ALL_OUTFITS)) {
-		return true;
-	}
-
 	if (outfit->premium && !isPremium()) {
 		return false;
 	}
@@ -6300,7 +6296,7 @@ bool Player::canWearOutfit(uint16_t lookType, uint8_t addons) const {
 		return true;
 	}
 
-	for (const auto &outfitEntry : outfitsMap) {
+	for (const auto &outfitEntry : outfits) {
 		if (outfitEntry.lookType == lookType) {
 			if (outfitEntry.addons == addons || outfitEntry.addons == 3 || addons == 0) {
 				return true;
