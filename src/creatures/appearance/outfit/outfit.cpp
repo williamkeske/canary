@@ -232,102 +232,124 @@ uint32_t Outfits::getOutfitId(PlayerSex_t sex, uint16_t lookType) const {
 }
 
 bool Outfits::addAttributes(uint32_t playerId, uint32_t outfitId, uint16_t sex, uint16_t addons) {
-	const auto &player = g_game().getPlayerByID(playerId);
-	if (!player) {
-		return false;
-	}
+    std::cout << "[DEBUG] addAttributes chamado -> playerId=" << playerId
+              << ", outfitId=" << outfitId
+              << ", sex=" << sex
+              << ", addons=" << addons << std::endl;
 
-	auto &outfitsList = outfits[sex];
-	auto it = std::ranges::find_if(outfitsList, [&outfitId](const auto &outfit) {
-		return outfit->lookType == outfitId;
-	});
+    const auto &player = g_game().getPlayerByID(playerId);
+    if (!player) {
+        std::cout << "[DEBUG] addAttributes: playerId não encontrado" << std::endl;
+        return false;
+    }
 
-	if (it == outfitsList.end()) {
-		return false;
-	}
+    auto &outfitsList = outfits[sex];
+    auto it = std::ranges::find_if(outfitsList, [&outfitId](const auto &outfit) {
+        return outfit->lookType == outfitId;
+    });
 
-	const auto &outfit = *it;
+    if (it == outfitsList.end()) {
+        std::cout << "[DEBUG] addAttributes: outfitId=" << outfitId << " não encontrado na lista" << std::endl;
+        return false;
+    }
 
-	// Apply Conditions
-	if (outfit->manaShield) {
-		const auto &condition = Condition::createCondition(CONDITIONID_OUTFIT, CONDITION_MANASHIELD, -1, 0);
-		player->addCondition(condition);
-	}
+    const auto &outfit = *it;
+    std::cout << "[DEBUG] Outfit encontrado: lookType=" << outfit->lookType
+              << " | manaShield=" << outfit->manaShield
+              << " | invisible=" << outfit->invisible
+              << " | speed=" << outfit->speed
+              << " | regeneration=" << outfit->regeneration
+              << " | healthGain=" << outfit->healthGain
+              << " | manaGain=" << outfit->manaGain
+              << " | criticalChance=" << outfit->criticalChance
+              << " | criticalDamage=" << outfit->criticalDamage << std::endl;
 
-	if (outfit->invisible) {
-		const auto &condition = Condition::createCondition(CONDITIONID_OUTFIT, CONDITION_INVISIBLE, -1, 0);
-		player->addCondition(condition);
-	}
+    // Apply Conditions
+    if (outfit->manaShield) {
+        std::cout << "[DEBUG] Aplicando ManaShield" << std::endl;
+        const auto &condition = Condition::createCondition(CONDITIONID_OUTFIT, CONDITION_MANASHIELD, -1, 0);
+        player->addCondition(condition);
+    }
 
-	if (outfit->speed) {
-		g_game().changeSpeed(player, outfit->speed);
-	}
+    if (outfit->invisible) {
+        std::cout << "[DEBUG] Aplicando Invisibilidade" << std::endl;
+        const auto &condition = Condition::createCondition(CONDITIONID_OUTFIT, CONDITION_INVISIBLE, -1, 0);
+        player->addCondition(condition);
+    }
 
-	if (outfit->regeneration) {
-		const auto &condition = Condition::createCondition(CONDITIONID_OUTFIT, CONDITION_REGENERATION, -1, 0);
-		if (outfit->healthGain) {
-			condition->setParam(CONDITION_PARAM_HEALTHGAIN, outfit->healthGain);
-		}
+    if (outfit->speed) {
+        std::cout << "[DEBUG] Alterando velocidade: +" << outfit->speed << std::endl;
+        g_game().changeSpeed(player, outfit->speed);
+    }
 
-		if (outfit->healthTicks) {
-			condition->setParam(CONDITION_PARAM_HEALTHTICKS, outfit->healthTicks);
-		}
+    if (outfit->regeneration) {
+        std::cout << "[DEBUG] Aplicando Regeneração" << std::endl;
+        const auto &condition = Condition::createCondition(CONDITIONID_OUTFIT, CONDITION_REGENERATION, -1, 0);
+        if (outfit->healthGain) {
+            condition->setParam(CONDITION_PARAM_HEALTHGAIN, outfit->healthGain);
+        }
+        if (outfit->healthTicks) {
+            condition->setParam(CONDITION_PARAM_HEALTHTICKS, outfit->healthTicks);
+        }
+        if (outfit->manaGain) {
+            condition->setParam(CONDITION_PARAM_MANAGAIN, outfit->manaGain);
+        }
+        if (outfit->manaTicks) {
+            condition->setParam(CONDITION_PARAM_MANATICKS, outfit->manaTicks);
+        }
+        player->addCondition(condition);
+    }
 
-		if (outfit->manaGain) {
-			condition->setParam(CONDITION_PARAM_MANAGAIN, outfit->manaGain);
-		}
+    // Apply skills
+    for (uint32_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
+        if (outfit->skills[i]) {
+            std::cout << "[DEBUG] Skill[" << i << "] bonus=" << outfit->skills[i] << std::endl;
+            player->setVarSkill(static_cast<skills_t>(i), outfit->skills[i]);
+        }
+    }
 
-		if (outfit->manaTicks) {
-			condition->setParam(CONDITION_PARAM_MANATICKS, outfit->manaTicks);
-		}
+    // Apply life leech
+    if (outfit->lifeLeechChance > 0) {
+        std::cout << "[DEBUG] LifeLeechChance=" << outfit->lifeLeechChance << std::endl;
+        player->setVarSkill(SKILL_LIFE_LEECH_CHANCE, outfit->lifeLeechChance);
+    }
+    if (outfit->lifeLeechAmount > 0) {
+        std::cout << "[DEBUG] LifeLeechAmount=" << outfit->lifeLeechAmount << std::endl;
+        player->setVarSkill(SKILL_LIFE_LEECH_AMOUNT, outfit->lifeLeechAmount);
+    }
 
-		player->addCondition(condition);
-	}
+    // Apply mana leech
+    if (outfit->manaLeechChance > 0) {
+        std::cout << "[DEBUG] ManaLeechChance=" << outfit->manaLeechChance << std::endl;
+        player->setVarSkill(SKILL_MANA_LEECH_CHANCE, outfit->manaLeechChance);
+    }
+    if (outfit->manaLeechAmount > 0) {
+        std::cout << "[DEBUG] ManaLeechAmount=" << outfit->manaLeechAmount << std::endl;
+        player->setVarSkill(SKILL_MANA_LEECH_AMOUNT, outfit->manaLeechAmount);
+    }
 
-	// Apply skills
-	for (uint32_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
-		if (outfit->skills[i]) {
-			player->setVarSkill(static_cast<skills_t>(i), outfit->skills[i]);
-		}
-	}
+    // Apply critical hit
+    if (outfit->criticalChance > 0) {
+        std::cout << "[DEBUG] CriticalChance=" << outfit->criticalChance << std::endl;
+        player->setVarSkill(SKILL_CRITICAL_HIT_CHANCE, outfit->criticalChance);
+    }
+    if (outfit->criticalDamage > 0) {
+        std::cout << "[DEBUG] CriticalDamage=" << outfit->criticalDamage << std::endl;
+        player->setVarSkill(SKILL_CRITICAL_HIT_DAMAGE, outfit->criticalDamage);
+    }
 
-	// Apply life leech
-	if (outfit->lifeLeechChance > 0) {
-		player->setVarSkill(SKILL_LIFE_LEECH_CHANCE, outfit->lifeLeechChance);
-	}
+    // Apply stats
+    for (uint32_t s = STAT_FIRST; s <= STAT_LAST; ++s) {
+        if (outfit->stats[s]) {
+            std::cout << "[DEBUG] Stat[" << s << "] bonus=" << outfit->stats[s] << std::endl;
+            player->setVarStats(static_cast<stats_t>(s), outfit->stats[s]);
+        }
+    }
 
-	if (outfit->lifeLeechAmount > 0) {
-		player->setVarSkill(SKILL_LIFE_LEECH_AMOUNT, outfit->lifeLeechAmount);
-	}
-
-	// Apply mana leech
-	if (outfit->manaLeechChance > 0) {
-		player->setVarSkill(SKILL_MANA_LEECH_CHANCE, outfit->manaLeechChance);
-	}
-
-	if (outfit->manaLeechAmount > 0) {
-		player->setVarSkill(SKILL_MANA_LEECH_AMOUNT, outfit->manaLeechAmount);
-	}
-
-	// Apply critical hit
-	if (outfit->criticalChance > 0) {
-		player->setVarSkill(SKILL_CRITICAL_HIT_CHANCE, outfit->criticalChance);
-	}
-
-	if (outfit->criticalDamage > 0) {
-		player->setVarSkill(SKILL_CRITICAL_HIT_DAMAGE, outfit->criticalDamage);
-	}
-
-	// Apply stats
-	for (uint32_t s = STAT_FIRST; s <= STAT_LAST; ++s) {
-		if (outfit->stats[s]) {
-			player->setVarStats(static_cast<stats_t>(s), outfit->stats[s]);
-		}
-	}
-
-	player->sendStats();
-	player->sendSkills();
-	return true;
+    player->sendStats();
+    player->sendSkills();
+    std::cout << "[DEBUG] addAttributes finalizado com sucesso" << std::endl;
+    return true;
 }
 
 bool Outfits::removeAttributes(uint32_t playerId, uint32_t outfitId, uint16_t sex) {

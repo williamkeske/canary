@@ -6250,27 +6250,47 @@ void Player::changeSoul(int32_t soulChange) {
 }
 
 bool Player::changeOutfit(Outfit_t outfit, bool checkList) {
-	auto outfitId = Outfits::getInstance().getOutfitId(getSex(), outfit.lookType);
-	if (checkList && (!canWearOutfit(outfitId, outfit.lookAddons) || !requestedOutfit)) {
-		return false;
-	}
+    std::cout << "[DEBUG] changeOutfit() chamado: lookType=" << outfit.lookType 
+              << ", addons=" << static_cast<int>(outfit.lookAddons) << std::endl;
 
-	requestedOutfit = false;
-	if (outfitAttributes) {
-		auto oldId = Outfits::getInstance().getOutfitId(getSex(), defaultOutfit.lookType);
-		if (defaultOutfit.lookAddons == 3) {
-			outfitAttributes = !Outfits::getInstance().removeAttributes(getID(), oldId, getSex());
-		}
-	}
+    auto outfitId = Outfits::getInstance().getOutfitId(getSex(), outfit.lookType);
+    std::cout << "[DEBUG] outfitId calculado = " << outfitId << std::endl;
 
-	defaultOutfit = outfit;
-	if (outfit.lookAddons == 3) {
-		outfitAttributes = Outfits::getInstance().addAttributes(getID(), outfitId, getSex(), defaultOutfit.lookAddons);
-	} else {
-		outfitAttributes = false;
-	}
+    if (checkList && (!canWearOutfit(outfitId, outfit.lookAddons) || !requestedOutfit)) {
+        std::cout << "[DEBUG] Falha no checkList: canWearOutfit=" 
+                  << (canWearOutfit(outfitId, outfit.lookAddons) ? "true" : "false")
+                  << ", requestedOutfit=" << (requestedOutfit ? "true" : "false") << std::endl;
+        return false;
+    }
 
-	return true;
+    requestedOutfit = false;
+
+    if (outfitAttributes) {
+        auto oldId = Outfits::getInstance().getOutfitId(getSex(), defaultOutfit.lookType);
+        std::cout << "[DEBUG] Removendo atributos do outfit anterior: oldLookType=" 
+                  << defaultOutfit.lookType << ", addons=" << static_cast<int>(defaultOutfit.lookAddons)
+                  << ", oldId=" << oldId << std::endl;
+
+        if (defaultOutfit.lookAddons == 3) {
+            bool removed = Outfits::getInstance().removeAttributes(getID(), oldId, getSex());
+            std::cout << "[DEBUG] removeAttributes retornou " << (removed ? "true" : "false") << std::endl;
+            outfitAttributes = !removed;
+        }
+    }
+
+    defaultOutfit = outfit;
+
+    if (outfit.lookAddons == 3) {
+        std::cout << "[DEBUG] Aplicando atributos para outfitId=" << outfitId << std::endl;
+        bool added = Outfits::getInstance().addAttributes(getID(), outfitId, getSex(), defaultOutfit.lookAddons);
+        std::cout << "[DEBUG] addAttributes retornou " << (added ? "true" : "false") << std::endl;
+        outfitAttributes = added;
+    } else {
+        std::cout << "[DEBUG] Outfit não tem os dois addons, não aplicando atributos" << std::endl;
+        outfitAttributes = false;
+    }
+
+    return true;
 }
 
 bool Player::canWearOutfit(uint16_t lookType, uint8_t addons) const {
