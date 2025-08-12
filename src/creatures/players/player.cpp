@@ -6339,6 +6339,27 @@ bool Player::canWear(uint16_t lookType, uint8_t addons) const {
 	return false;
 }
 
+void Player::setOutfitsModified(bool modified) {
+	outfitsModified = modified;
+}
+
+bool Player::isOutfitsModified() const {
+	return outfitsModified;
+}
+
+void Player::genReservedStorageRange() {
+	// generate outfits range
+	uint32_t outfits_key = PSTRG_OUTFITS_RANGE_START;
+	for (const auto &entry : outfits) {
+		storageMap[++outfits_key] = (entry.lookType << 16) | entry.addons;
+	}
+	// generate familiars range
+	uint32_t familiar_key = PSTRG_FAMILIARS_RANGE_START;
+	for (const auto &entry : familiars) {
+		storageMap[++familiar_key] = (entry.lookType << 16);
+	}
+}
+
 void Player::setSpecialMenuAvailable(bool stashBool, bool marketMenuBool, bool depotSearchBool) {
 	// Closing depot search when player have special container disabled and it's still open.
 	if (isDepotSearchOpen() && !depotSearchBool && depotSearch) {
@@ -6360,10 +6381,13 @@ void Player::setSpecialMenuAvailable(bool stashBool, bool marketMenuBool, bool d
 void Player::addOutfit(uint16_t lookType, uint8_t addons) {
 	for (auto &outfitEntry : outfits) {
 		if (outfitEntry.lookType == lookType) {
+			setOutfitsModified(true);
 			outfitEntry.addons |= addons;
 			return;
 		}
 	}
+	
+	setOutfitsModified(true);
 	outfits.emplace_back(lookType, addons);
 }
 
@@ -6372,6 +6396,7 @@ bool Player::removeOutfit(uint16_t lookType) {
 		const auto &entry = *it;
 		if (entry.lookType == lookType) {
 			outfits.erase(it);
+			setOutfitsModified(true);
 			return true;
 		}
 	}
@@ -6382,6 +6407,7 @@ bool Player::removeOutfitAddon(uint16_t lookType, uint8_t addons) {
 	for (OutfitEntry &outfitEntry : outfits) {
 		if (outfitEntry.lookType == lookType) {
 			outfitEntry.addons &= ~addons;
+			setOutfitsModified(true);
 			return true;
 		}
 	}

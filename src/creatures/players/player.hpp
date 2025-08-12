@@ -224,6 +224,8 @@ public:
 	bool hasAnyMount() const;
 	uint8_t getRandomMountId() const;
 	void dismount();
+	
+	void setOutfitsModified(bool modified);
 
 	uint16_t getDodgeChance() const;
 
