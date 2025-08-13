@@ -6237,7 +6237,7 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool setMount,
 		internalCreatureChangeOutfit(player, outfit);
 	}
 	
-	player->internalSetOutfit(outfit);
+	player->setOutfit(outfit);
 
 	auto &playerAttachedEffects = player->attachedEffects();
 	// Wings
