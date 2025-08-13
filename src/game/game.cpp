@@ -6164,149 +6164,154 @@ void Game::playerToggleMount(uint32_t playerId, bool mount) {
 }
 
 void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool setMount, uint8_t isMountRandomized /* = 0*/) {
-    if (!g_configManager().getBoolean(ALLOW_CHANGEOUTFIT)) {
-        return;
-    }
+	if (!g_configManager().getBoolean(ALLOW_CHANGEOUTFIT)) {
+		return;
+	}
 
-    const auto& player = getPlayerByID(playerId);
-    if (!player) {
-        return;
-    }
+	const auto &player = getPlayerByID(playerId);
+	if (!player) {
+		return;
+	}
 
-    if (!player->changeOutfit(outfit, true)) {
-        return;
-    }
+	if (!player->changeOutfit(outfit, true)) {
+		return;
+	}
+	
+	if (player->isWearingSupportOutfit()) {
+		outfit.lookMount = 0;
+		isMountRandomized = 0;
+	}
 
-    if (player->isWearingSupportOutfit()) {
-        outfit.lookMount = 0;
-        isMountRandomized = 0;
-    }
+	player->setRandomMount(isMountRandomized);
 
-    player->setRandomMount(isMountRandomized);
+	if (isMountRandomized && outfit.lookMount != 0 && player->hasAnyMount()) {
+		auto randomMount = mounts->getMountByID(player->getRandomMountId());
+		outfit.lookMount = randomMount->clientId;
+	}
 
-    if (isMountRandomized && outfit.lookMount != 0 && player->hasAnyMount()) {
-        auto randomMount = mounts->getMountByID(player->getRandomMountId());
-        outfit.lookMount = randomMount->clientId;
-    }
+	const auto playerOutfit = Outfits::getInstance().getOutfitByLookType(player, outfit.lookType);
+	if (!playerOutfit || !setMount) {
+		outfit.lookMount = 0;
+	}
 
-    const auto playerOutfit = Outfits::getInstance().getOutfitByLookType(player, outfit.lookType);
-    if (!playerOutfit || !setMount) {
-        outfit.lookMount = 0;
-    }
+	if (outfit.lookMount != 0) {
+		const auto mount = mounts->getMountByClientID(outfit.lookMount);
+		if (!mount) {
+			return;
+		}
 
-    if (outfit.lookMount != 0) {
-        const auto mount = mounts->getMountByClientID(outfit.lookMount);
-        if (!mount) {
-            return;
-        }
+		if (!player->hasMount(mount)) {
+			return;
+		}
 
-        if (!player->hasMount(mount)) {
-            return;
-        }
+		std::shared_ptr<Tile> playerTile = player->getTile();
+		if (!playerTile) {
+			return;
+		}
 
-        std::shared_ptr<Tile> playerTile = player->getTile();
-        if (!playerTile) {
-            return;
-        }
+		if (!g_configManager().getBoolean(TOGGLE_MOUNT_IN_PZ) && playerTile->hasFlag(TILESTATE_PROTECTIONZONE)) {
+			outfit.lookMount = 0;
+		}
 
-        if (!g_configManager().getBoolean(TOGGLE_MOUNT_IN_PZ) && playerTile->hasFlag(TILESTATE_PROTECTIONZONE)) {
-            outfit.lookMount = 0;
-        }
+		auto deltaSpeedChange = mount->speed;
+		if (player->isMounted()) {
+			const auto prevMount = mounts->getMountByID(player->getLastMount());
+			if (prevMount) {
+				deltaSpeedChange -= prevMount->speed;
+			}
+		}
 
-        auto deltaSpeedChange = mount->speed;
-        if (player->isMounted()) {
-            const auto prevMount = mounts->getMountByID(player->getLastMount());
-            if (prevMount) {
-                deltaSpeedChange -= prevMount->speed;
-            }
-        }
+		player->setCurrentMount(mount->id);
+		changeSpeed(player, deltaSpeedChange);
+	} else if (player->isMounted()) {
+		player->dismount();
+	}
 
-        player->setCurrentMount(mount->id);
-        changeSpeed(player, deltaSpeedChange);
-    } else if (player->isMounted()) {
-        player->dismount();
-    }
+	if (player->canWear(outfit.lookType, outfit.lookAddons)) {
+		player->defaultOutfit = outfit;
 
-    player->defaultOutfit = outfit;
-    if (!player->hasCondition(CONDITION_OUTFIT)) {
-        internalCreatureChangeOutfit(player, outfit);
-    }
+		if (player->hasCondition(CONDITION_OUTFIT)) {
+			return;
+		}
 
-    auto& playerAttachedEffects = player->attachedEffects();
-    // Wings
-    if (outfit.lookWing != 0) {
-        const auto& wing = m_attachedEffects->getWingByID(outfit.lookWing);
-        if (!wing) {
-            return;
-        }
+		internalCreatureChangeOutfit(player, outfit);
+	}
 
-        player->detachEffectById(playerAttachedEffects.getCurrentWing());
-        playerAttachedEffects.setCurrentWing(wing->id);
-        player->attachEffectById(wing->id);
-    } else {
-        if (playerAttachedEffects.isWinged()) {
-            playerAttachedEffects.diswing();
-        }
-        player->detachEffectById(playerAttachedEffects.getCurrentWing());
-        playerAttachedEffects.setWasWinged(false);
-    }
-    // Effect
-    if (outfit.lookEffect != 0) {
-        const auto& effect = m_attachedEffects->getEffectByID(outfit.lookEffect);
-        if (!effect) {
-            return;
-        }
+	auto &playerAttachedEffects = player->attachedEffects();
+	// Wings
+	if (outfit.lookWing != 0) {
+		const auto &wing = m_attachedEffects->getWingByID(outfit.lookWing);
+		if (!wing) {
+			return;
+		}
 
-        player->detachEffectById(playerAttachedEffects.getCurrentEffect());
-        playerAttachedEffects.setCurrentEffect(effect->id);
-        player->attachEffectById(effect->id);
-    } else {
-        if (playerAttachedEffects.isEffected()) {
-            playerAttachedEffects.diseffect();
-        }
-        player->detachEffectById(playerAttachedEffects.getCurrentEffect());
-        playerAttachedEffects.setWasEffected(false);
-    }
+		player->detachEffectById(playerAttachedEffects.getCurrentWing());
+		playerAttachedEffects.setCurrentWing(wing->id);
+		player->attachEffectById(wing->id);
+	} else {
+		if (playerAttachedEffects.isWinged()) {
+			playerAttachedEffects.diswing();
+		}
+		player->detachEffectById(playerAttachedEffects.getCurrentWing());
+		playerAttachedEffects.setWasWinged(false);
+	}
+	// Effect
+	if (outfit.lookEffect != 0) {
+		const auto &effect = m_attachedEffects->getEffectByID(outfit.lookEffect);
+		if (!effect) {
+			return;
+		}
 
-    // Aura
-    if (outfit.lookAura != 0) {
-        const auto& aura = m_attachedEffects->getAuraByID(outfit.lookAura);
-        if (!aura) {
-            return;
-        }
+		player->detachEffectById(playerAttachedEffects.getCurrentEffect());
+		playerAttachedEffects.setCurrentEffect(effect->id);
+		player->attachEffectById(effect->id);
+	} else {
+		if (playerAttachedEffects.isEffected()) {
+			playerAttachedEffects.diseffect();
+		}
+		player->detachEffectById(playerAttachedEffects.getCurrentEffect());
+		playerAttachedEffects.setWasEffected(false);
+	}
 
-        player->detachEffectById(playerAttachedEffects.getCurrentAura());
-        playerAttachedEffects.setCurrentAura(aura->id);
-        player->attachEffectById(aura->id);
-    } else {
-        if (playerAttachedEffects.isAuraed()) {
-            playerAttachedEffects.disaura();
-        }
-        player->detachEffectById(playerAttachedEffects.getCurrentAura());
-        playerAttachedEffects.setWasAuraed(false);
-    }
-    // Shaders
-    if (outfit.lookShader != 0) {
-        const auto& shaderPtr = m_attachedEffects->getShaderByID(outfit.lookShader);
-        if (!shaderPtr) {
-            return;
-        }
-        Shader* shader = shaderPtr.get();
+	// Aura
+	if (outfit.lookAura != 0) {
+		const auto &aura = m_attachedEffects->getAuraByID(outfit.lookAura);
+		if (!aura) {
+			return;
+		}
 
-        if (!playerAttachedEffects.hasShader(shader)) {
-            return;
-        }
+		player->detachEffectById(playerAttachedEffects.getCurrentAura());
+		playerAttachedEffects.setCurrentAura(aura->id);
+		player->attachEffectById(aura->id);
+	} else {
+		if (playerAttachedEffects.isAuraed()) {
+			playerAttachedEffects.disaura();
+		}
+		player->detachEffectById(playerAttachedEffects.getCurrentAura());
+		playerAttachedEffects.setWasAuraed(false);
+	}
+	// Shaders
+	if (outfit.lookShader != 0) {
+		const auto &shaderPtr = m_attachedEffects->getShaderByID(outfit.lookShader);
+		if (!shaderPtr) {
+			return;
+		}
+		Shader* shader = shaderPtr.get();
 
-        playerAttachedEffects.setCurrentShader(shader->id);
-        playerAttachedEffects.sendShader(player, shader->name);
+		if (!playerAttachedEffects.hasShader(shader)) {
+			return;
+		}
 
-    } else {
-        if (playerAttachedEffects.isShadered()) {
-            playerAttachedEffects.disshader();
-        }
-        playerAttachedEffects.sendShader(player, "Outfit - Default");
-        playerAttachedEffects.setWasShadered(false);
-    }
+		playerAttachedEffects.setCurrentShader(shader->id);
+		playerAttachedEffects.sendShader(player, shader->name);
+
+	} else {
+		if (playerAttachedEffects.isShadered()) {
+			playerAttachedEffects.disshader();
+		}
+		playerAttachedEffects.sendShader(player, "Outfit - Default");
+		playerAttachedEffects.setWasShadered(false);
+	}
 }
 
 void Game::playerShowQuestLog(uint32_t playerId) {

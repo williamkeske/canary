@@ -7479,6 +7479,8 @@ void ProtocolGame::sendOutfitWindow() {
 		if (isOTCR) {
 			sendOutfitWindowCustomOTCR(msg); // g_game.enableFeature(GameWingsAurasEffectsShader)
 		}
+		
+		player->hasRequestedOutfit(true);
 		writeToOutputBuffer(msg);
 		return;
 	}
