@@ -1742,6 +1742,8 @@ void ProtocolGame::parseSetOutfit(NetworkMessage &msg) {
 	if (!player || player->isRemoved()) {
 		return;
 	}
+	
+	player->hasRequestedOutfit(true);
 
 	uint16_t startBufferPosition = msg.getBufferPosition();
 	const auto &outfitModule = g_modules().getEventByRecvbyte(0xD3, false);
