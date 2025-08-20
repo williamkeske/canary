@@ -71,3 +71,169 @@ std::shared_ptr<Mount> Mounts::getMountByClientID(uint16_t clientId) {
 
 	return it != mounts.end() ? *it : nullptr; // Returning the shared_ptr to the Mount object
 }
+
+bool Mounts::addAttributes(uint32_t playerId, uint8_t mountId) {
+	const auto &player = g_game().getPlayerByID(playerId);
+	if (!player) {
+		return false;
+	}
+
+	auto mount = getMountByID(mountId);
+	if (!mount) {
+		g_logger().warn("[Mounts::addAttributes] Mount with ID {} not found.", mountId);
+		return false;
+	}
+
+	// Apply Conditions
+	if (mount->manaShield) {
+		const auto &condition = Condition::createCondition(CONDITIONID_MOUNT, CONDITION_MANASHIELD, -1, 0);
+		player->addCondition(condition);
+	}
+
+	if (mount->invisible) {
+		const auto &condition = Condition::createCondition(CONDITIONID_MOUNT, CONDITION_INVISIBLE, -1, 0);
+		player->addCondition(condition);
+	}
+
+	if (mount->regeneration) {
+		const auto &condition = Condition::createCondition(CONDITIONID_MOUNT, CONDITION_REGENERATION, -1, 0);
+		if (mount->healthGain) {
+			condition->setParam(CONDITION_PARAM_HEALTHGAIN, mount->healthGain);
+		}
+
+		if (mount->healthTicks) {
+			condition->setParam(CONDITION_PARAM_HEALTHTICKS, mount->healthTicks);
+		}
+
+		if (mount->manaGain) {
+			condition->setParam(CONDITION_PARAM_MANAGAIN, mount->manaGain);
+		}
+
+		if (mount->manaTicks) {
+			condition->setParam(CONDITION_PARAM_MANATICKS, mount->manaTicks);
+		}
+
+		player->addCondition(condition);
+	}
+
+	// Apply skills
+	for (uint32_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
+		if (mount->skills[i]) {
+			player->setVarSkill(static_cast<skills_t>(i), mount->skills[i]);
+		}
+	}
+
+	// Apply life leech
+	if (mount->lifeLeechChance > 0) {
+		player->setVarSkill(SKILL_LIFE_LEECH_CHANCE, mount->lifeLeechChance);
+	}
+
+	if (mount->lifeLeechAmount > 0) {
+		player->setVarSkill(SKILL_LIFE_LEECH_AMOUNT, mount->lifeLeechAmount);
+	}
+
+	// Apply mana leech
+	if (mount->manaLeechChance > 0) {
+		player->setVarSkill(SKILL_MANA_LEECH_CHANCE, mount->manaLeechChance);
+	}
+
+	if (mount->manaLeechAmount > 0) {
+		player->setVarSkill(SKILL_MANA_LEECH_AMOUNT, mount->manaLeechAmount);
+	}
+
+	// Apply critical hit
+	if (mount->criticalChance > 0) {
+		player->setVarSkill(SKILL_CRITICAL_HIT_CHANCE, mount->criticalChance);
+	}
+
+	if (mount->criticalDamage > 0) {
+		player->setVarSkill(SKILL_CRITICAL_HIT_DAMAGE, mount->criticalDamage);
+	}
+
+	// Apply stats
+	for (uint32_t s = STAT_FIRST; s <= STAT_LAST; ++s) {
+		if (mount->stats[s]) {
+			player->setVarStats(static_cast<stats_t>(s), mount->stats[s]);
+		}
+	}
+
+	player->sendStats();
+	player->sendSkills();
+	return true;
+}
+
+bool Mounts::removeAttributes(uint32_t playerId, uint8_t mountId) {
+	const auto &player = g_game().getPlayerByID(playerId);
+	if (!player) {
+		return false;
+	}
+
+	auto it = std::find_if(mounts.begin(), mounts.end(), [mountId](const std::shared_ptr<Mount> &mount) {
+		return mount->id == mountId;
+	});
+
+	auto mount = *it;
+
+	if (!mount) {
+		g_logger().warn("[Mounts::removeAttributes] Mount with ID {} not found.", mountId);
+		return false;
+	}
+
+	// Remove conditions
+	if (mount->manaShield) {
+		player->removeCondition(CONDITION_MANASHIELD, CONDITIONID_MOUNT);
+	}
+
+	if (mount->invisible) {
+		player->removeCondition(CONDITION_INVISIBLE, CONDITIONID_MOUNT);
+	}
+
+	if (mount->regeneration) {
+		player->removeCondition(CONDITION_REGENERATION, CONDITIONID_MOUNT);
+	}
+
+	// Revert Skills
+	for (uint32_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
+		if (mount->skills[i]) {
+			player->setVarSkill(static_cast<skills_t>(i), -mount->skills[i]);
+		}
+	}
+
+	// Revert Life Leech
+	if (mount->lifeLeechChance > 0) {
+		player->setVarSkill(SKILL_LIFE_LEECH_CHANCE, -mount->lifeLeechChance);
+	}
+
+	if (mount->lifeLeechAmount > 0) {
+		player->setVarSkill(SKILL_LIFE_LEECH_AMOUNT, -mount->lifeLeechAmount);
+	}
+
+	// Revert Mana Leech
+	if (mount->manaLeechChance > 0) {
+		player->setVarSkill(SKILL_MANA_LEECH_CHANCE, -mount->manaLeechChance);
+	}
+
+	if (mount->manaLeechAmount > 0) {
+		player->setVarSkill(SKILL_MANA_LEECH_AMOUNT, -mount->manaLeechAmount);
+	}
+
+	// Revert Critical Hit
+	if (mount->criticalChance > 0) {
+		player->setVarSkill(SKILL_CRITICAL_HIT_CHANCE, -mount->criticalChance);
+	}
+
+	if (mount->criticalDamage > 0) {
+		player->setVarSkill(SKILL_CRITICAL_HIT_DAMAGE, -mount->criticalDamage);
+	}
+
+	// Revert Stats
+	for (uint32_t s = STAT_FIRST; s <= STAT_LAST; ++s) {
+		if (mount->stats[s]) {
+			player->setVarStats(static_cast<stats_t>(s), -mount->stats[s]);
+		}
+	}
+
+	player->sendStats();
+	player->sendSkills();
+	return true;
+}
