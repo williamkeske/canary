@@ -8,8 +8,10 @@
  */
 
 #include "creatures/appearance/mounts/mounts.hpp"
-
+#include "creatures/combat/condition.hpp"
+#include "creatures/creatures_definitions.hpp"
 #include "config/configmanager.hpp"
+#include "creatures/players/player.hpp"
 #include "game/game.hpp"
 #include "utils/pugicast.hpp"
 #include "utils/tools.hpp"
@@ -35,19 +37,116 @@ bool Mounts::loadFromXml() {
 			continue;
 		}
 
-		mounts.emplace(std::make_shared<Mount>(
-			static_cast<uint8_t>(pugi::cast<uint16_t>(mountNode.attribute("id").value())),
+		auto mount = std::make_shared<Mount>(
+			static_cast<uint16_t>(pugi::cast<uint16_t>(mountNode.attribute("id").value())),
 			lookType,
 			mountNode.attribute("name").as_string(),
 			pugi::cast<int32_t>(mountNode.attribute("speed").value()),
 			mountNode.attribute("premium").as_bool(),
 			mountNode.attribute("type").as_string()
-		));
+		);
+
+		mount->manaShield = mountNode.attribute("manashield").as_bool() || mountNode.attribute("manaShield").as_bool();
+		mount->invisible = mountNode.attribute("invisible").as_bool();
+		mount->attackSpeed = mountNode.attribute("attackSpeed").as_int() || mountNode.attribute("attackspeed").as_int();
+
+		if (auto healthGainAttr = mountNode.attribute("healthGain")) {
+			mount->healthGain = healthGainAttr.as_int();
+			mount->regeneration = true;
+		}
+
+		if (auto healthTicksAttr = mountNode.attribute("healthTicks")) {
+			mount->healthTicks = healthTicksAttr.as_int();
+			mount->regeneration = true;
+		}
+
+		if (auto manaGainAttr = mountNode.attribute("manaGain")) {
+			mount->manaGain = manaGainAttr.as_int();
+			mount->regeneration = true;
+		}
+
+		if (auto manaTicksAttr = mountNode.attribute("manaTicks")) {
+			mount->manaTicks = manaTicksAttr.as_int();
+			mount->regeneration = true;
+		}
+
+		if (auto skillsNode = mountNode.child("skills")) {
+			for (auto skillNode : skillsNode.children()) {
+				std::string skillName = skillNode.name();
+				int32_t skillValue = skillNode.attribute("value").as_int();
+
+				if (skillName == "fist") {
+					mount->skills[SKILL_FIST] += skillValue;
+				} else if (skillName == "club") {
+					mount->skills[SKILL_CLUB] += skillValue;
+				} else if (skillName == "axe") {
+					mount->skills[SKILL_AXE] += skillValue;
+				} else if (skillName == "sword") {
+					mount->skills[SKILL_SWORD] += skillValue;
+				} else if (skillName == "distance" || skillName == "dist") {
+					mount->skills[SKILL_DISTANCE] += skillValue;
+				} else if (skillName == "shielding" || skillName == "shield") {
+					mount->skills[SKILL_SHIELD] = skillValue;
+				} else if (skillName == "fishing" || skillName == "fish") {
+					mount->skills[SKILL_FISHING] += skillValue;
+				} else if (skillName == "melee") {
+					mount->skills[SKILL_FIST] += skillValue;
+					mount->skills[SKILL_CLUB] += skillValue;
+					mount->skills[SKILL_SWORD] += skillValue;
+					mount->skills[SKILL_AXE] += skillValue;
+				} else if (skillName == "weapon" || skillName == "weapons") {
+					mount->skills[SKILL_CLUB] += skillValue;
+					mount->skills[SKILL_SWORD] += skillValue;
+					mount->skills[SKILL_AXE] += skillValue;
+					mount->skills[SKILL_DISTANCE] += skillValue;
+				}
+			}
+		}
+
+		if (auto statsNode = mountNode.child("stats")) {
+			for (auto statNode : statsNode.children()) {
+				std::string statName = statNode.name();
+				int32_t statValue = statNode.attribute("value").as_int();
+
+				if (statName == "maxHealth" || statName == "maxhealth") {
+					mount->stats[STAT_MAXHITPOINTS] += statValue;
+				} else if (statName == "maxMana" || statName == "maxmana") {
+					mount->stats[STAT_MAXMANAPOINTS] += statValue;
+				} else if (statName == "cap" || statName == "capacity") {
+					mount->stats[STAT_CAPACITY] += statValue * 100;
+				} else if (statName == "magLevel" || statName == "magicLevel" || statName == "magiclevel" || statName == "ml") {
+					mount->stats[STAT_MAGICPOINTS] += statValue;
+				}
+			}
+		}
+
+		if (auto imbuingNode = mountNode.child("imbuing")) {
+			for (auto imbuing : imbuingNode.children()) {
+				std::string imbuingName = imbuing.name();
+				double imbuingValue = imbuing.attribute("value").as_double() * 100.0;
+
+				if (imbuingName == "lifeLeechChance" || imbuingName == "lifeleechchance") {
+					mount->lifeLeechChance += imbuingValue;
+				} else if (imbuingName == "lifeleechAmount" || imbuingName == "lifeleechamount") {
+					mount->lifeLeechAmount += imbuingValue;
+				} else if (imbuingName == "manaLeechChance" || imbuingName == "manaleechchance") {
+					mount->manaLeechChance += imbuingValue;
+				} else if (imbuingName == "manaLeechAmount" || imbuingName == "manaleechamount") {
+					mount->manaLeechAmount += imbuingValue;
+				} else if (imbuingName == "criticalChance" || imbuingName == "criticalchance") {
+					mount->criticalChance += imbuingValue;
+				} else if (imbuingName == "criticalDamage" || imbuingName == "criticaldamage") {
+					mount->criticalDamage += imbuingValue;
+				}
+			}
+		}
+
+		mounts.insert(mount);
 	}
 	return true;
 }
 
-std::shared_ptr<Mount> Mounts::getMountByID(uint8_t id) {
+std::shared_ptr<Mount> Mounts::getMountByID(uint16_t id) {
 	auto it = std::find_if(mounts.begin(), mounts.end(), [id](const std::shared_ptr<Mount> &mount) {
 		return mount->id == id; // Note the use of -> operator to access the members of the Mount object
 	});
