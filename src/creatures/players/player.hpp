@@ -1638,6 +1638,7 @@ private:
 	bool connProtected = false;
 	bool outfitAttributes = false;
 	bool requestedOutfit = false;
+	bool mountAttributes = false;
 
 	// Hazard system
 	int64_t lastHazardSystemCriticalHit = 0;
