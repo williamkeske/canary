@@ -6273,6 +6273,32 @@ bool Player::changeOutfit(Outfit_t outfit, bool checkList) {
 	return true;
 }
 
+bool Player::changeMount(uint8_t mountId, bool checkList) {
+	const auto &mount = g_game().mounts->getMountByID(mountId);
+	if (!mount) {
+		return false;
+	}
+
+	if (checkList && (!hasMount(mount))) {
+		return false;
+	}
+
+	if (mountAttributes) {
+		const auto &currentMount = g_game().mounts->getMountByID(getLastMount());
+		if (!currentMount) {
+			return false;
+		}
+
+		mountAttributes = !g_game().mounts->removeAttributes(getID(), currentMount->id);
+	}
+
+	if (mount) {
+		mountAttributes = g_game().mounts->addAttributes(getID(), mountId);
+	}
+
+	return true;
+}
+
 bool Player::canWear(uint16_t lookType, uint8_t addons) const {
 	if (g_configManager().getBoolean(WARN_UNSAFE_SCRIPTS) && lookType != 0 && !g_game().isLookTypeRegistered(lookType)) {
 		g_logger().warn("[Player::canWear] An unregistered creature looktype type with id '{}' was blocked to prevent client crash.", lookType);
@@ -6726,6 +6752,19 @@ uint32_t Player::getAttackSpeed() const {
 	int32_t modifiers = 0;
 	bool onFistAttackSpeed = g_configManager().getBoolean(TOGGLE_ATTACK_SPEED_ONFIST);
 	uint32_t MAX_ATTACK_SPEED = g_configManager().getNumber(MAX_SPEED_ATTACKONFIST);
+	
+	if (mountAttributes) {
+		const auto &mount = g_game().mounts->getMountByClientID(defaultOutfit.lookMount);
+		if (isMounted() && mount) {
+			if (mount->attackSpeed > 0) {
+				if (mount->attackSpeed >= vocation->getAttackSpeed()) {
+					modifiers = 0;
+				} else {
+					modifiers += mount->attackSpeed;
+				}
+			}
+		}
+	}
 	
 	if (outfitAttributes) {
 		const auto &outfit = Outfits::getInstance().getOutfitByLookType(getPlayer(), defaultOutfit.lookType);
@@ -7495,8 +7534,15 @@ bool Player::hasMount(const std::shared_ptr<Mount> &mount) const {
 
 void Player::dismount() {
 	const auto &mount = g_game().mounts->getMountByID(getCurrentMount());
+
 	if (mount && mount->speed > 0) {
 		g_game().changeSpeed(static_self_cast<Player>(), -mount->speed);
+	}
+
+	if (mountAttributes && mount) {
+		mountAttributes = !g_game().mounts->removeAttributes(getID(), mount->id);
+	} else {
+		mountAttributes = false;
 	}
 
 	defaultOutfit.lookMount = 0;
@@ -10648,6 +10694,28 @@ void Player::onCreatureAppear(const std::shared_ptr<Creature> &creature, bool is
 			}
 		}
 		
+		if (getCurrentMount() != 0) {
+			toggleMount(true);
+
+			uint8_t currentMountId = getLastMount();
+			if (currentMountId == 0) {
+				return;
+			}
+
+			if (isRandomMounted()) {
+				currentMountId = getRandomMountId();
+			}
+
+			const auto &currentMount = g_game().mounts->getMountByID(currentMountId);
+			if (hasMount(currentMount)) {
+				if (mountAttributes) {
+					mountAttributes = g_game().mounts->removeAttributes(getID(), currentMount->id);
+				}
+
+				mountAttributes = g_game().mounts->addAttributes(getID(), currentMount->id);
+			}
+		}
+		
 		// Refresh bosstiary tracker onLogin
 		refreshCyclopediaMonsterTracker(true);
 		// Refresh bestiary tracker onLogin
@@ -10695,10 +10763,6 @@ void Player::onCreatureAppear(const std::shared_ptr<Creature> &creature, bool is
 				}
 			}
 			sendBlessStatus();
-		}
-
-		if (getCurrentMount() != 0) {
-			toggleMount(true);
 		}
 
 		g_game().changePlayerSpeed(static_self_cast<Player>(), 0);

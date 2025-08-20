@@ -776,7 +776,9 @@ public:
 	bool removeOutfit(uint16_t lookType);
 	bool removeOutfitAddon(uint16_t lookType, uint8_t addons);
 	bool getOutfitAddons(const std::shared_ptr<Outfit> &outfit, uint8_t &addons) const;
+	
 	bool changeOutfit(Outfit_t outfit, bool checkList);
+	bool changeMount(uint8_t mountId, bool checkList);
 	void hasRequestedOutfit(bool v) {
 		requestedOutfit = v;
 	}
