@@ -6282,6 +6282,10 @@ bool Player::changeMount(uint8_t mountId, bool checkList) {
 	if (checkList && (!hasMount(mount))) {
 		return false;
 	}
+	
+	if (mountAttributes && getLastMount() == mountId) {
+        return true;
+    }
 
 	if (mountAttributes) {
 		const auto &currentMount = g_game().mounts->getMountByID(getLastMount());
@@ -7444,7 +7448,8 @@ bool Player::toggleMount(bool mount) {
 			sendCancelMessage(RETURNVALUE_NOTPOSSIBLE);
 			return false;
 		}
-
+		
+		changeMount(currentMount->id, /*checkList=*/false);
 		defaultOutfit.lookMount = currentMount->clientId;
 		setCurrentMount(currentMount->id);
 		kv()->set("last-mount", currentMount->id);
