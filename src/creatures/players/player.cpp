@@ -10757,8 +10757,12 @@ void Player::onCreatureAppear(const std::shared_ptr<Creature> &creature, bool is
 					}
 
 					if (!inPZ) {
-						toggleMount(true);
-						mountAttributes = g_game().mounts->addAttributes(getID(), currentMount->id);
+						if (isMounted()) {
+							mountAttributes = g_game().mounts->addAttributes(getID(), currentMount->id);
+						} else {
+							toggleMount(true);
+							mountAttributes = g_game().mounts->addAttributes(getID(), currentMount->id);
+						}
 					} else {
 						if (isMounted()) {
 							dismount();
@@ -10768,7 +10772,7 @@ void Player::onCreatureAppear(const std::shared_ptr<Creature> &creature, bool is
 				}
 			}
 		}
-		
+
 		// Refresh bosstiary tracker onLogin
 		refreshCyclopediaMonsterTracker(true);
 		// Refresh bestiary tracker onLogin
