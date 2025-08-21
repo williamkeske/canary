@@ -10743,9 +10743,8 @@ void Player::onCreatureAppear(const std::shared_ptr<Creature> &creature, bool is
 			const auto& tile = getTile();
 			const bool inPZ = tile && tile->hasFlag(TILESTATE_PROTECTIONZONE);
 			uint8_t currentMountId = getLastMount();
-			if (currentMountId == 0) {
-				// Nothing
-			} else {
+			
+			if (currentMountId != 0) {
 				if (isRandomMounted()) {
 					currentMountId = getRandomMountId();
 				}
@@ -10753,7 +10752,8 @@ void Player::onCreatureAppear(const std::shared_ptr<Creature> &creature, bool is
 				const auto& currentMount = g_game().mounts->getMountByID(currentMountId);
 				if (hasMount(currentMount)) {
 					if (mountAttributes) {
-						mountAttributes = g_game().mounts->removeAttributes(getID(), currentMount->id);
+						g_game().mounts->removeAttributes(getID(), currentMount->id);
+						mountAttributes = false;
 					}
 
 					if (!inPZ) {
@@ -10763,6 +10763,7 @@ void Player::onCreatureAppear(const std::shared_ptr<Creature> &creature, bool is
 						if (isMounted()) {
 							dismount();
 						}
+						mountAttributes = false;
 					}
 				}
 			}
