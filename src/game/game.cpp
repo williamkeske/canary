@@ -6229,7 +6229,7 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool setMount,
 
 		player->setCurrentMount(mount->id);
 		changeSpeed(player, deltaSpeedChange);
-		Mounts::getInstance().addAttributes(player->getID(), mount->id);
+		mounts->addAttributes(player->getID(), mount->id);
 	} else if (player->isMounted()) {
 		player->dismount();
 	}
