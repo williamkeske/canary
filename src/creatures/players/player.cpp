@@ -10742,8 +10742,8 @@ void Player::onCreatureAppear(const std::shared_ptr<Creature> &creature, bool is
 		if (getCurrentMount() != 0) {
 			const auto& tile = getTile();
 			const bool inPZ = tile && tile->hasFlag(TILESTATE_PROTECTIONZONE);
+
 			uint8_t currentMountId = getLastMount();
-			
 			if (currentMountId != 0) {
 				if (isRandomMounted()) {
 					currentMountId = getRandomMountId();
@@ -10757,12 +10757,10 @@ void Player::onCreatureAppear(const std::shared_ptr<Creature> &creature, bool is
 					}
 
 					if (!inPZ) {
-						if (isMounted()) {
-							mountAttributes = g_game().mounts->addAttributes(getID(), currentMount->id);
-						} else {
+						if (!isMounted()) {
 							toggleMount(true);
-							mountAttributes = g_game().mounts->addAttributes(getID(), currentMount->id);
 						}
+						mountAttributes = g_game().mounts->addAttributes(getID(), currentMount->id);
 					} else {
 						if (isMounted()) {
 							dismount();
@@ -10772,6 +10770,7 @@ void Player::onCreatureAppear(const std::shared_ptr<Creature> &creature, bool is
 				}
 			}
 		}
+
 
 		// Refresh bosstiary tracker onLogin
 		refreshCyclopediaMonsterTracker(true);
