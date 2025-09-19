@@ -10496,9 +10496,21 @@ void Player::registerForgeHistoryDescription(ForgeHistory history) {
 }
 
 // Quickloot
+uint8_t Player::getOpenedContainersLimit() const {
+	if (!client) {
+		return 32;
+	}
+
+	return getOperatingSystem() < CLIENTOS_OTCLIENT_LINUX ? 32 : 254;
+}
 
 void Player::openPlayerContainers() {
-	std::vector<std::pair<uint8_t, std::shared_ptr<Container>>> openContainersList;
+	// skip if client lost connection
+	if (!client) {
+		return;
+	}
+
+	std::map<uint8_t, std::shared_ptr<Container>> openContainersList;
 
 	for (int32_t i = CONST_SLOT_FIRST; i <= CONST_SLOT_LAST; i++) {
 		const auto &item = inventory[i];
@@ -10510,27 +10522,35 @@ void Player::openPlayerContainers() {
 		if (itemContainer) {
 			const auto &cid = item->getAttribute<int64_t>(ItemAttribute_t::OPENCONTAINER);
 			if (cid > 0) {
-				openContainersList.emplace_back(cid, itemContainer);
+				openContainersList[cid] = itemContainer;
 			}
 			for (ContainerIterator it = itemContainer->iterator(); it.hasNext(); it.advance()) {
 				const auto &subContainer = (*it)->getContainer();
 				if (subContainer) {
 					const auto &subcid = (*it)->getAttribute<uint8_t>(ItemAttribute_t::OPENCONTAINER);
 					if (subcid > 0) {
-						openContainersList.emplace_back(subcid, subContainer);
+						openContainersList[subcid] = subContainer;
 					}
 				}
 			}
 		}
 	}
-
-	std::ranges::sort(openContainersList, [](const std::pair<uint8_t, std::shared_ptr<Container>> &left, const std::pair<uint8_t, std::shared_ptr<Container>> &right) {
-		return left.first < right.first;
-	});
-
+	
+	// send saved containers
 	for (const auto &[containerId, container] : openContainersList) {
-		addContainer(containerId - 1, container);
-		onSendContainer(container);
+		if (container) {
+			addContainer(containerId - 1, container);
+			onSendContainer(container);
+		}
+	}
+	// fix missing containers for qt client
+	if (getOperatingSystem() < CLIENTOS_OTCLIENT_LINUX) {
+		for (uint32_t i = 0; i < getOpenedContainersLimit(); ++i) {
+			if (!openContainersList[i + 1]) {
+				client->sendEmptyContainer(i);
+				client->sendCloseContainer(i);
+			}
+		}
 	}
 }
 

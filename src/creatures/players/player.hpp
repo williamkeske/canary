@@ -320,6 +320,8 @@ public:
 	uint32_t getProtocolVersion() const;
 
 	bool hasSecureMode() const;
+	
+	uint8_t getOpenedContainersLimit() const;
 
 	void setParty(std::shared_ptr<Party> newParty);
 	std::shared_ptr<Party> getParty() const;
