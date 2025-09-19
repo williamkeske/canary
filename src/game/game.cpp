@@ -6153,7 +6153,7 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool setMount,
 	if (!player->changeOutfit(outfit, true)) {
 		return;
 	}
-	
+
 	if (player->isWearingSupportOutfit()) {
 		outfit.lookMount = 0;
 		isMountRandomized = 0;
@@ -6197,7 +6197,7 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool setMount,
 				deltaSpeedChange -= prevMount->speed;
 			}
 		}
-		
+
 		if (player->changeMount(mount->id, true)) {
 			g_logger().debug("Attributes found for mount: {}", mount->id);
 		} else {

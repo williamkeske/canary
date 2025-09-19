@@ -1742,7 +1742,7 @@ void ProtocolGame::parseSetOutfit(NetworkMessage &msg) {
 	if (!player || player->isRemoved()) {
 		return;
 	}
-	
+
 	player->hasRequestedOutfit(true);
 
 	uint16_t startBufferPosition = msg.getBufferPosition();
@@ -7515,7 +7515,7 @@ void ProtocolGame::sendOutfitWindow() {
 		if (isOTCR) {
 			sendOutfitWindowCustomOTCR(msg); // g_game.enableFeature(GameWingsAurasEffectsShader)
 		}
-		
+
 		writeToOutputBuffer(msg);
 		return;
 	}
