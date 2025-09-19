@@ -76,7 +76,7 @@ bool Outfits::loadFromXml() {
 			outfitNode.attribute("unlocked").as_bool(true),
 			pugi::cast<uint16_t>(lookTypeAttribute.value())
 		);
-		
+
 		outfit->manaShield = outfitNode.attribute("manaShield").as_bool() || outfitNode.attribute("manashield").as_bool();
 		outfit->invisible = outfitNode.attribute("invisible").as_bool();
 		outfit->speed = outfitNode.attribute("speed").as_int();
