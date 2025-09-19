@@ -5042,6 +5042,40 @@ void ProtocolGame::sendContainer(uint8_t cid, const std::shared_ptr<Container> &
 	writeToOutputBuffer(msg);
 }
 
+void ProtocolGame::sendEmptyContainer(uint8_t cid) {
+	if (oldProtocol) {
+		return;
+	}
+
+	NetworkMessage msg;
+	msg.addByte(0x6E);
+	msg.addByte(cid);
+
+	// Item placeholder (a simple bag)
+	AddItem(msg, ITEM_BAG, 1, 0);
+	msg.addString("Placeholder");
+
+	msg.addByte(8); // container capacity (number of slots)
+	msg.addByte(0x00); // hasParent = false
+	msg.addByte(0x00); // depot search disabled
+	msg.addByte(0x01); // unlocked (drag & drop enabled)
+	msg.addByte(0x00); // no pagination
+
+	msg.add<uint16_t>(0); // containerSize = 0
+	msg.add<uint16_t>(0); // firstIndex = 0
+	msg.addByte(0x00); // number of items = 0
+
+	// categories (2 zero bytes)
+	msg.addByte(0x00);
+	msg.addByte(0x00);
+
+	// extra options (movable and holdingPlayer)
+	msg.addByte(0x00);
+	msg.addByte(0x00);
+
+	writeToOutputBuffer(msg);
+}
+
 void ProtocolGame::sendLootContainers() {
 	if (!player || oldProtocol) {
 		return;
