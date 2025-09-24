@@ -6177,7 +6177,7 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool setMount,
 		return;
 	}
 	
-	if (player->isWearingSupportOutfit()) {
+	if (player->isWearingSupportOutfit() || !setMount) {
 		outfit.lookMount = 0;
 		isMountRandomized = 0;
 	}
@@ -6190,7 +6190,7 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool setMount,
 	}
 
 	const auto playerOutfit = Outfits::getInstance().getOutfitByLookType(player, outfit.lookType);
-	if (!playerOutfit || !setMount) {
+	if (!playerOutfit) {
 		outfit.lookMount = 0;
 	}
 
@@ -6219,6 +6219,12 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool setMount,
 			if (player->mountAttributes) {
 				g_game().mounts->removeAttributes(player->getID(), mount->id);
 				player->mountAttributes = false;
+			}
+			
+			if (player->outfitAttributes) {
+				auto oldId = Outfits::getInstance().getOutfitId(player->getSex(), player->defaultOutfit.lookType);
+				Outfits::getInstance().removeAttributes(player->getID(), oldId, player->getSex());
+				player->outfitAttributes = false;
 			}
 
 			return;
