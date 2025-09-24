@@ -6154,7 +6154,7 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool setMount,
 		return;
 	}
 	
-	if (player->isWearingSupportOutfit() || !setMount) {
+	if (player->isWearingSupportOutfit()) {
 		outfit.lookMount = 0;
 		isMountRandomized = 0;
 	}
@@ -6167,7 +6167,7 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool setMount,
 	}
 
 	const auto playerOutfit = Outfits::getInstance().getOutfitByLookType(player, outfit.lookType);
-	if (!playerOutfit) {
+	if (!playerOutfit || !setMount) {
 		outfit.lookMount = 0;
 	}
 
