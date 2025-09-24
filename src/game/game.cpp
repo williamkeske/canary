@@ -6220,12 +6220,6 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool setMount,
 				g_game().mounts->removeAttributes(player->getID(), mount->id);
 				player->mountAttributes = false;
 			}
-			
-			if (player->outfitAttributes) {
-				auto oldId = Outfits::getInstance().getOutfitId(player->getSex(), player->defaultOutfit.lookType);
-				Outfits::getInstance().removeAttributes(player->getID(), oldId, player->getSex());
-				player->outfitAttributes = false;
-			}
 
 			return;
 		}
