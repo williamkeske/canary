@@ -6194,7 +6194,7 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool setMount,
 			}
 
 			if (player->mountAttributes) {
-				Mounts::getInstance().removeAttributes(player->getID(), mount->id);
+				g_game().mounts->removeAttributes(player->getID(), mount->id);
 				player->mountAttributes = false;
 			}
 
