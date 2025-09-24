@@ -6211,6 +6211,17 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool setMount,
 
 		if (!g_configManager().getBoolean(TOGGLE_MOUNT_IN_PZ) && playerTile->hasFlag(TILESTATE_PROTECTIONZONE)) {
 			outfit.lookMount = 0;
+			
+			if (player->isMounted()) {
+				player->dismount();
+			}
+
+			if (player->mountAttributes) {
+				Mounts::getInstance().removeAttributes(player->getID(), mount->id);
+				player->mountAttributes = false;
+			}
+
+			return;
 		}
 
 		auto deltaSpeedChange = mount->speed;
