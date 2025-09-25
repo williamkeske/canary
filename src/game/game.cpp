@@ -2938,7 +2938,7 @@ void Game::playerQuickLootCorpse(const std::shared_ptr<Player> &player, const st
 	if (!player || !corpse) {
 		return;
 	}
-	
+
 	removeLootHighlight(corpse);
 
 	std::vector<std::shared_ptr<Item>> itemList;
@@ -2997,7 +2997,7 @@ void Game::playerQuickLootCorpse(const std::shared_ptr<Player> &player, const st
 			}
 		}
 	}
-	
+
 	if (corpse->hasLootHighlight()) {
 		if (corpse->empty()) {
 			removeLootHighlight(corpse);
@@ -5704,7 +5704,7 @@ void Game::playerQuickLoot(uint32_t playerId, const Position &pos, uint16_t item
 void Game::playerLootAllCorpses(const std::shared_ptr<Player> &player, const Position &pos, bool lootAllCorpses) {
 	if (lootAllCorpses) {
 		uint16_t corpses = 0;
-		
+
 		for (int32_t dx = -1; dx <= 1 && corpses < 30; ++dx) {
 			for (int32_t dy = -1; dy <= 1 && corpses < 30; ++dy) {
 				const int32_t targetX = static_cast<int32_t>(pos.x) + dx;
@@ -5759,7 +5759,7 @@ void Game::playerLootAllCorpses(const std::shared_ptr<Player> &player, const Pos
 				}
 			}
 		}
-		
+
 		if (corpses > 0) {
 			if (corpses > 1) {
 				std::stringstream string;
@@ -6333,7 +6333,7 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool setMount,
 	if (!player->changeOutfit(outfit, true)) {
 		return;
 	}
-	
+
 	if (player->isWearingSupportOutfit() || !setMount) {
 		outfit.lookMount = 0;
 		isMountRandomized = 0;
@@ -6368,7 +6368,7 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool setMount,
 
 		if (!g_configManager().getBoolean(TOGGLE_MOUNT_IN_PZ) && playerTile->hasFlag(TILESTATE_PROTECTIONZONE)) {
 			outfit.lookMount = 0;
-			
+
 			if (player->isMounted()) {
 				player->dismount();
 			}

@@ -7359,9 +7359,9 @@ void ProtocolGame::sendMoveCreature(const std::shared_ptr<Creature> &creature, c
 				GetMapDescription(areaX, areaY, newPos.z, areaWidth, areaHeight, msg);
 				collectLootHighlightsFromDescription(areaX, areaY, newPos.z, areaWidth, areaHeight, processedPositions, highlightPositions);
 			}
-			
+
 			writeToOutputBuffer(msg);
-			
+
 			for (const auto &position : highlightPositions) {
 				removeMagicEffect(position, CONST_ME_LOOT_HIGHLIGHT);
 				sendMagicEffect(position, CONST_ME_LOOT_HIGHLIGHT);
