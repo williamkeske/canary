@@ -2208,12 +2208,12 @@ void Player::sendPing() {
 	if (noPongTime >= 60000 && shouldForceLogout) {
 		if (canLogout() && g_creatureEvents().playerLogout(static_self_cast<Player>())) {
 			g_logger().info("Player {} has been kicked due to ping timeout. (has client: {})", getName(), client != nullptr);
-			
+
 			// Try to pass party leadership before logging out
 			if (m_party) {
 				m_party->leaveParty(getPlayer(), true);
 			}
-			
+
 			if (client) {
 				client->logout(true, true);
 			} else {
