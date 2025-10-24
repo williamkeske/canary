@@ -1560,7 +1560,7 @@ void Tile::postAddNotification(const std::shared_ptr<Thing> &thing, const std::s
 	} else {
 		item = thing->getItem();
 	}
-	
+
 	if (item) {
 		const auto &container = item->getContainer();
 		if (container && container->hasLootHighlight()) {
@@ -1599,7 +1599,7 @@ void Tile::postRemoveNotification(const std::shared_ptr<Thing> &thing, const std
 	if (!thing) {
 		return;
 	}
-	
+
 	if (const auto &item = thing->getItem()) {
 		const auto &container = item->getContainer();
 		if (container && container->hasLootHighlight()) {

@@ -2208,12 +2208,12 @@ void Player::sendPing() {
 	if (noPongTime >= 60000 && shouldForceLogout) {
 		if (canLogout() && g_creatureEvents().playerLogout(static_self_cast<Player>())) {
 			g_logger().info("Player {} has been kicked due to ping timeout. (has client: {})", getName(), client != nullptr);
-			
+
 			// Try to pass party leadership before logging out
 			if (m_party) {
 				m_party->leaveParty(getPlayer(), true);
 			}
-			
+
 			if (client) {
 				client->logout(true, true);
 			} else {
@@ -6256,7 +6256,7 @@ void Player::changeSoul(int32_t soulChange) {
 }
 
 bool Player::changeOutfit(Outfit_t outfit, bool checkList) {
-    auto outfitId = Outfits::getInstance().getOutfitId(getSex(), outfit.lookType);
+	auto outfitId = Outfits::getInstance().getOutfitId(getSex(), outfit.lookType);
 	if (checkList && (!canWear(outfitId, outfit.lookAddons) || !requestedOutfit)) {
 		return false;
 	}
@@ -6288,10 +6288,10 @@ bool Player::changeMount(uint8_t mountId, bool checkList) {
 	if (checkList && (!hasMount(mount))) {
 		return false;
 	}
-	
+
 	if (mountAttributes && getLastMount() == mountId) {
-        return true;
-    }
+		return true;
+	}
 
 	if (mountAttributes) {
 		const auto &currentMount = g_game().mounts->getMountByID(getLastMount());
@@ -6368,7 +6368,7 @@ void Player::addOutfit(uint16_t lookType, uint8_t addons) {
 			return;
 		}
 	}
-	
+
 	outfits.emplace_back(lookType, addons);
 }
 
@@ -6749,7 +6749,7 @@ uint32_t Player::getAttackSpeed() const {
 	int32_t modifiers = 0;
 	bool onFistAttackSpeed = g_configManager().getBoolean(TOGGLE_ATTACK_SPEED_ONFIST);
 	uint32_t MAX_ATTACK_SPEED = g_configManager().getNumber(MAX_SPEED_ATTACKONFIST);
-	
+
 	if (mountAttributes) {
 		const auto &mount = g_game().mounts->getMountByClientID(defaultOutfit.lookMount);
 		if (isMounted() && mount) {
@@ -6762,7 +6762,7 @@ uint32_t Player::getAttackSpeed() const {
 			}
 		}
 	}
-	
+
 	if (outfitAttributes) {
 		const auto &outfit = Outfits::getInstance().getOutfitByLookType(getPlayer(), defaultOutfit.lookType);
 		if (outfit) {
@@ -7441,7 +7441,7 @@ bool Player::toggleMount(bool mount) {
 			sendCancelMessage(RETURNVALUE_NOTPOSSIBLE);
 			return false;
 		}
-		
+
 		changeMount(currentMount->id, /*checkList=*/false);
 		defaultOutfit.lookMount = currentMount->clientId;
 		setCurrentMount(currentMount->id);
@@ -10528,7 +10528,7 @@ void Player::openPlayerContainers() {
 			}
 		}
 	}
-	
+
 	// send saved containers
 	for (const auto &[containerId, container] : openContainersList) {
 		if (container) {
@@ -10702,7 +10702,7 @@ void Player::onCreatureAppear(const std::shared_ptr<Creature> &creature, bool is
 
 	if (isLogin && creature == getPlayer()) {
 		onEquipInventory();
-		
+
 		const auto &outfit = Outfits::getInstance().getOutfitByLookType(getPlayer(), defaultOutfit.lookType);
 		if (outfit) {
 			if (defaultOutfit.lookAddons == 3) {
@@ -10711,7 +10711,7 @@ void Player::onCreatureAppear(const std::shared_ptr<Creature> &creature, bool is
 				outfitAttributes = false;
 			}
 		}
-		
+
 		if (isMounted()) {
 			dismount();
 		}

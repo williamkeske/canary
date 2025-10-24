@@ -913,10 +913,10 @@ void Combat::combatTileEffects(const CreatureVector &spectators, const std::shar
 			case ITEM_MAGICWALL_PERSISTENT:
 				itemId = ITEM_MAGICWALL;
 				break;
-			
+
 			case ITEM_OLD_MAGICWALL_PERSISTENT:
-			    itemId = ITEM_OLD_MAGICWALL;
-			    break;
+				itemId = ITEM_OLD_MAGICWALL;
+				break;
 
 			case ITEM_WILDGROWTH_PERSISTENT:
 				itemId = ITEM_WILDGROWTH;
