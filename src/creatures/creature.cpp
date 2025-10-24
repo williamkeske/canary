@@ -732,7 +732,7 @@ bool Creature::dropCorpse(const std::shared_ptr<Creature> &lastHitCreature, cons
 					                        "Game::playerQuickLootCorpse");
 				}
 			}
-
+			
 			if (corpseContainer) {
 				const auto &monster = getMonster();
 				if (!monster || !monster->isRewardBoss()) {

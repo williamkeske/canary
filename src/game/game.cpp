@@ -1717,7 +1717,7 @@ void Game::playerMoveItem(const std::shared_ptr<Player> &player, const Position 
 		item = thing->getItem();
 	}
 
-	if (!item || item->getID() != itemId) {
+	if (item->getID() != itemId) {
 		player->sendCancelMessage(RETURNVALUE_NOTPOSSIBLE);
 		return;
 	}
@@ -1784,10 +1784,10 @@ void Game::playerMoveItem(const std::shared_ptr<Player> &player, const Position 
 	}
 
 	const auto toCylinderTile = toCylinder->getTile();
-	const Position &mapToPos = toCylinderTile ? toCylinderTile->getPosition() : toPos;
+	const auto &mapToPos = toCylinderTile->getPosition();
 
 	// hangable item specific code
-	if (item->isHangable() && toCylinderTile && toCylinderTile->hasFlag(TILESTATE_SUPPORTS_HANGABLE)) {
+	if (item->isHangable() && toCylinderTile->hasFlag(TILESTATE_SUPPORTS_HANGABLE)) {
 		// destination supports hangable objects so need to move there first
 		bool vertical = toCylinderTile->hasProperty(CONST_PROP_ISVERTICAL);
 		if (vertical) {
@@ -1875,16 +1875,13 @@ void Game::playerMoveItem(const std::shared_ptr<Player> &player, const Position 
 	}
 
 	if (item->isWrapable() || item->isStoreItem() || (item->hasOwner() && !item->isOwner(player))) {
-		const auto toHouseTile = toCylinderTile ? toCylinderTile->dynamic_self_cast<HouseTile>() : nullptr;
-		const auto fromHouseTile = cylinderTile ? cylinderTile->dynamic_self_cast<HouseTile>() : nullptr;
-
-		if (fromHouseTile) {
-			const auto fromHouse = fromHouseTile->getHouse();
-			const auto toHouse = toHouseTile ? toHouseTile->getHouse() : nullptr;
-			if (!fromHouse || !toHouse || toHouse->getId() != fromHouse->getId()) {
-				player->sendCancelMessage("You cannot move this item out of this house.");
-				return;
-			}
+		const auto toTile = map.getTile(mapToPos);
+		const auto fromTile = map.getTile(mapFromPos);
+		const auto toHouseTile = toTile ? toTile->dynamic_self_cast<HouseTile>() : nullptr;
+		const auto fromHouseTile = fromTile ? fromTile->dynamic_self_cast<HouseTile>() : nullptr;
+		if (fromHouseTile && (!toHouseTile || toHouseTile->getHouse()->getId() != fromHouseTile->getHouse()->getId())) {
+			player->sendCancelMessage("You cannot move this item out of this house.");
+			return;
 		}
 	}
 
@@ -2941,7 +2938,7 @@ void Game::playerQuickLootCorpse(const std::shared_ptr<Player> &player, const st
 	if (!player || !corpse) {
 		return;
 	}
-
+	
 	removeLootHighlight(corpse);
 
 	std::vector<std::shared_ptr<Item>> itemList;
@@ -3000,7 +2997,7 @@ void Game::playerQuickLootCorpse(const std::shared_ptr<Player> &player, const st
 			}
 		}
 	}
-
+	
 	if (corpse->hasLootHighlight()) {
 		if (corpse->empty()) {
 			removeLootHighlight(corpse);
@@ -5725,7 +5722,7 @@ void Game::playerQuickLoot(uint32_t playerId, const Position &pos, uint16_t item
 void Game::playerLootAllCorpses(const std::shared_ptr<Player> &player, const Position &pos, bool lootAllCorpses) {
 	if (lootAllCorpses) {
 		uint16_t corpses = 0;
-
+		
 		for (int32_t dx = -1; dx <= 1 && corpses < 30; ++dx) {
 			for (int32_t dy = -1; dy <= 1 && corpses < 30; ++dy) {
 				const int32_t targetX = static_cast<int32_t>(pos.x) + dx;
@@ -5780,7 +5777,7 @@ void Game::playerLootAllCorpses(const std::shared_ptr<Player> &player, const Pos
 				}
 			}
 		}
-
+		
 		if (corpses > 0) {
 			if (corpses > 1) {
 				std::stringstream string;
@@ -6354,7 +6351,7 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool setMount,
 	if (!player->changeOutfit(outfit, true)) {
 		return;
 	}
-
+	
 	if (player->isWearingSupportOutfit() || !setMount) {
 		outfit.lookMount = 0;
 		isMountRandomized = 0;
@@ -6389,7 +6386,7 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool setMount,
 
 		if (!g_configManager().getBoolean(TOGGLE_MOUNT_IN_PZ) && playerTile->hasFlag(TILESTATE_PROTECTIONZONE)) {
 			outfit.lookMount = 0;
-
+			
 			if (player->isMounted()) {
 				player->dismount();
 			}
@@ -6409,7 +6406,7 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool setMount,
 				deltaSpeedChange -= prevMount->speed;
 			}
 		}
-
+		
 		if (player->changeMount(mount->id, true)) {
 			g_logger().debug("Attributes found for mount: {}", mount->id);
 		} else {
@@ -11573,7 +11570,7 @@ void Game::playerCyclopediaHouseMoveOut(uint32_t playerId, uint32_t houseId, uin
 
 	std::shared_ptr<Player> player = getPlayerByID(playerId);
 	if (!player) {
-		g_logger().warn("[{}] Player {} not found while handling house auction request.", __FUNCTION__, playerId);
+		player->sendHouseAuctionMessage(houseId, HouseAuctionType::MoveOut, enumToValue(TransferErrorMessage::Internal));
 		return;
 	}
 
@@ -11602,7 +11599,7 @@ void Game::playerCyclopediaHouseCancelMoveOut(uint32_t playerId, uint32_t houseI
 
 	std::shared_ptr<Player> player = getPlayerByID(playerId);
 	if (!player) {
-		g_logger().warn("[{}] Player {} not found while handling house auction request.", __FUNCTION__, playerId);
+		player->sendHouseAuctionMessage(houseId, HouseAuctionType::CancelMoveOut, enumToValue(TransferErrorMessage::Internal));
 		return;
 	}
 
@@ -11631,7 +11628,7 @@ void Game::playerCyclopediaHouseTransfer(uint32_t playerId, uint32_t houseId, ui
 
 	const std::shared_ptr<Player> &owner = getPlayerByID(playerId);
 	if (!owner) {
-		g_logger().warn("[{}] Player {} not found while handling house auction request.", __FUNCTION__, playerId);
+		owner->sendHouseAuctionMessage(houseId, HouseAuctionType::Transfer, enumToValue(TransferErrorMessage::Internal));
 		return;
 	}
 
@@ -11670,7 +11667,7 @@ void Game::playerCyclopediaHouseCancelTransfer(uint32_t playerId, uint32_t house
 
 	const std::shared_ptr<Player> &player = getPlayerByID(playerId);
 	if (!player) {
-		g_logger().warn("[{}] Player {} not found while handling house auction request.", __FUNCTION__, playerId);
+		player->sendHouseAuctionMessage(houseId, HouseAuctionType::CancelTransfer, enumToValue(TransferErrorMessage::Internal));
 		return;
 	}
 
@@ -11714,7 +11711,7 @@ void Game::playerCyclopediaHouseAcceptTransfer(uint32_t playerId, uint32_t house
 
 	const std::shared_ptr<Player> &player = getPlayerByID(playerId);
 	if (!player) {
-		g_logger().warn("[{}] Player {} not found while handling house auction request.", __FUNCTION__, playerId);
+		player->sendHouseAuctionMessage(houseId, HouseAuctionType::AcceptTransfer, enumToValue(AcceptTransferErrorMessage::Internal));
 		return;
 	}
 
@@ -11748,7 +11745,7 @@ void Game::playerCyclopediaHouseRejectTransfer(uint32_t playerId, uint32_t house
 
 	const std::shared_ptr<Player> &player = getPlayerByID(playerId);
 	if (!player) {
-		g_logger().warn("[{}] Player {} not found while handling house auction request.", __FUNCTION__, playerId);
+		player->sendHouseAuctionMessage(houseId, HouseAuctionType::Transfer, enumToValue(TransferErrorMessage::Internal));
 		return;
 	}
 

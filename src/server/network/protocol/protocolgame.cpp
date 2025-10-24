@@ -1789,7 +1789,7 @@ void ProtocolGame::parseSetOutfit(NetworkMessage &msg) {
 	if (!player || player->isRemoved()) {
 		return;
 	}
-
+	
 	player->hasRequestedOutfit(true);
 
 	uint16_t startBufferPosition = msg.getBufferPosition();
@@ -7359,9 +7359,9 @@ void ProtocolGame::sendMoveCreature(const std::shared_ptr<Creature> &creature, c
 				GetMapDescription(areaX, areaY, newPos.z, areaWidth, areaHeight, msg);
 				collectLootHighlightsFromDescription(areaX, areaY, newPos.z, areaWidth, areaHeight, processedPositions, highlightPositions);
 			}
-
+			
 			writeToOutputBuffer(msg);
-
+			
 			for (const auto &position : highlightPositions) {
 				removeMagicEffect(position, CONST_ME_LOOT_HIGHLIGHT);
 				sendMagicEffect(position, CONST_ME_LOOT_HIGHLIGHT);
@@ -7602,7 +7602,7 @@ void ProtocolGame::sendOutfitWindow() {
 		if (isOTCR) {
 			sendOutfitWindowCustomOTCR(msg); // g_game.enableFeature(GameWingsAurasEffectsShader)
 		}
-
+		
 		writeToOutputBuffer(msg);
 		return;
 	}

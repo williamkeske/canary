@@ -56,17 +56,15 @@ struct DispatcherContext {
 	}
 
 private:
-	inline static constexpr std::string_view defaultTaskName { "ThreadPool::call" };
-
 	void reset() {
 		group = TaskGroup::ThreadPool;
 		type = DispatcherType::None;
-		taskName = defaultTaskName;
+		taskName = "ThreadPool::call";
 	}
 
 	DispatcherType type = DispatcherType::None;
 	TaskGroup group = TaskGroup::ThreadPool;
-	std::string_view taskName = defaultTaskName;
+	std::string_view taskName;
 
 	friend class Dispatcher;
 };

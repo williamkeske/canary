@@ -376,7 +376,7 @@ ReturnValue Actions::internalUseItem(const std::shared_ptr<Player> &player, cons
 			player->addContainer(index, openContainer);
 			player->onSendContainer(openContainer);
 		}
-
+		
 		if (container->isCorpse() && !container->isRewardCorpse()) {
 			g_game().removeLootHighlight(container);
 		}

@@ -716,7 +716,7 @@ public:
 private:
 	bool canPlayerSeeLootHighlight(const std::shared_ptr<Player> &player, const std::shared_ptr<Container> &corpse) const;
 	bool tileHasLootHighlight(const std::shared_ptr<Tile> &tile) const;
-
+	
 	std::map<uint16_t, Achievement> m_achievements;
 	std::map<std::string, uint16_t> m_achievementsNameToId;
 

@@ -298,10 +298,10 @@ std::shared_ptr<Item> Item::CreateItem(uint16_t itemId, Position &itemPosition) 
 		case ITEM_MAGICWALL:
 			itemId = ITEM_MAGICWALL_PERSISTENT;
 			break;
-
+			
 		case ITEM_OLD_MAGICWALL:
-			itemId = ITEM_OLD_MAGICWALL_PERSISTENT;
-			break;
+		    itemId = ITEM_OLD_MAGICWALL_PERSISTENT;
+		    break;
 
 		case ITEM_WILDGROWTH:
 			itemId = ITEM_WILDGROWTH_PERSISTENT;
