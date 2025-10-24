@@ -57,7 +57,7 @@ struct DispatcherContext {
 
 private:
 	inline static constexpr std::string_view defaultTaskName { "ThreadPool::call" };
-	
+
 	void reset() {
 		group = TaskGroup::ThreadPool;
 		type = DispatcherType::None;
